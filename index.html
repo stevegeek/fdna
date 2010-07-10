@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>JS FDNA</title>
+  <link rel="stylesheet" type="text/css" href="main.css">
+
+  <!--<script type="text/javascript" src="raphael/raphael-min.js"></script>-->
+  <script type="text/javascript" src="bluff/js-class.js"></script>
+  <script type="text/javascript" src="bluff/bluff-min.js"></script>
+
+  <script type="text/javascript" src="SimpleJavascriptInheritance.js"></script>
+  <script type="text/javascript" src="FDNA.js"></script>
+  <script type="text/javascript" src="ParseCircuit.js"></script>
+  <script type="text/javascript" src="AnalyseCircuit.js"></script>
+  <script type="text/javascript" src="main.js"></script>
+
+</head>
+<body>
+    <div id="desc">
+        <h1>Frequency Domain (AC) Circuit Analysis</h1>
+        <h2>AC analysis for simple electronic circuits</h2>
+        <p>
+            Supports two formats of circuit netlist: 
+            a simple format described here (a simplified SPICE), and real SPICE format but with limitations (without component optional values and for now with numerical terminals).
+        </p>
+        <p>
+            <a href="http://github.com/stevegeek/fdna">Source code at GitHub</a>
+        </p>
+        <p>
+            Copyright Stephen Ierodiaconou 2010, MIT License
+        </p>
+    </div>
+    <div id="editor">
+        <form name="circuiteditor">
+            <label for="examplecircuit">Example Circuits</label>
+            <select name="examplecircuit" onChange="return loadExample()">
+                <option value="test">Simple (Simple format)</option>
+                <option value="testspice">Simple (SPICE format) </option>
+            </select><br>
+            <textarea name="circuit" rows="15" cols="30" onKeyPress="return checkSyntax()" onChange="return checkSyntax()" onBlur="return checkSyntax()"></textarea><br>
+            <label for="format">Circuit Netlist Format</label>
+            <select name="format">
+                <option value="simple" selected>Simple</option>
+                <option value="spice">SPICE</option>
+            </select>
+            <input type="button" value="Analyse..." onClick="return analyseCircuit()">
+        </form>
+    </div>
+    <div id="sourceCode"></div>
+
+    <div id="circuitDiagram">
+        <canvas id="graphcanvas" width="800" height="600">
+        This text is displayed if your browser does not support HTML5 Canvas.
+        </canvas>
+        
+    </div>
+    
+    <div id="plots"></div>
+
+</body>
+</html>
+
