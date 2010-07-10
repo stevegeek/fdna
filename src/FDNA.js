@@ -297,7 +297,6 @@ function substitute(A)
     return X;
 }
 
-
 FDNA.GaussianElimination = function(matrix)
 {
     if (eliminate (matrix))

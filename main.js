@@ -126,8 +126,16 @@ function loadExample()
 {
     switch (document.circuiteditor.examplecircuit.options[document.circuiteditor.examplecircuit.selectedIndex].value)
     {
-        case 'test':
+        case 'example1':
             document.circuiteditor.circuit.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
+            document.circuiteditor.format.options[0].selected = true;
+            break;
+        case 'example2':
+            document.circuiteditor.circuit.value = "# More complex example. Takes some time to run. No WebWorkers yet, sorry.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
+            document.circuiteditor.format.options[0].selected = true;
+            break;
+        case 'example3':
+            document.circuiteditor.circuit.value = "R 1 2 10000\nR 2 3 100\nC 1 2 1e-7\nC 3 0 1e-6\nI 1 0 0.01 0.0\nF 500 10 2e3\nP 2\nE";
             document.circuiteditor.format.options[0].selected = true;
             break;
         case 'testspice':

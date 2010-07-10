@@ -6,13 +6,13 @@
   <link rel="stylesheet" type="text/css" href="main.css">
 
   <!--<script type="text/javascript" src="raphael/raphael-min.js"></script>-->
-  <script type="text/javascript" src="bluff/js-class.js"></script>
-  <script type="text/javascript" src="bluff/bluff-min.js"></script>
+  <script type="text/javascript" src="lib/bluff/js-class.js"></script>
+  <script type="text/javascript" src="lib/bluff/bluff-min.js"></script>
 
-  <script type="text/javascript" src="SimpleJavascriptInheritance.js"></script>
-  <script type="text/javascript" src="FDNA.js"></script>
-  <script type="text/javascript" src="ParseCircuit.js"></script>
-  <script type="text/javascript" src="AnalyseCircuit.js"></script>
+  <script type="text/javascript" src="lib/SimpleJavascriptInheritance.js"></script>
+  <script type="text/javascript" src="src/FDNA.js"></script>
+  <script type="text/javascript" src="src/ParseCircuit.js"></script>
+  <script type="text/javascript" src="src/AnalyseCircuit.js"></script>
   <script type="text/javascript" src="main.js"></script>
 
 </head>
@@ -35,8 +35,9 @@
         <form name="circuiteditor">
             <label for="examplecircuit">Example Circuits</label>
             <select name="examplecircuit" onChange="return loadExample()">
-                <option value="test">Simple (Simple format)</option>
-                <option value="testspice">Simple (SPICE format) </option>
+                <option value="example1">Simple Example 1 (Simple format)</option>
+                <option value="example2">Complex Example 2 (Simple format)</option>
+                <option value="example3">Simple Example 3 (Simple format)</option>
             </select><br>
             <textarea name="circuit" rows="15" cols="30" onKeyPress="return checkSyntax()" onChange="return checkSyntax()" onBlur="return checkSyntax()"></textarea><br>
             <label for="format">Circuit Netlist Format</label>
