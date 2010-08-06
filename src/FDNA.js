@@ -26,282 +26,215 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
 */
-
-// http://my.opera.com/GreyWyvern/blog/show.dml/1725165
-Object.prototype.clone = function() {
-  var newObj = (this instanceof Array) ? [] : {};
-  for (i in this) {
-    if (i == 'clone') continue;
-    if (this[i] && typeof this[i] == "object") {
-      newObj[i] = this[i].clone();
-    } else newObj[i] = this[i]
-  } return newObj;
-};
-
-FDNA = {Devices:new Array()};
-
-FDNA.ComplexNumber = Class.extend(
-{
-    init: function (Re, Im) 
-    {
-        this.Re = Re;
-        this.Im = Im;
-    },
-    getModulus: function ()
-    {
-        return Math.sqrt((this.Re*this.Re) + (this.Im*this.Im));
-    },
-    getArg: function ()
-    {
-        return (this.Re !== 0.0) ? Math.atan(this.Im/this.Re) : 0.0;
-    },
-    getArgInDegrees: function ()
-    {
-        return this.getArg() * (360/(2*Math.PI));
-    },
-    divideBy: function (divisor)
-    {
-        var a = this.Re;
-        var b = this.Im;
-        // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
-        // ( ac + jbc - jad + bd) / (cc + dd)
-        // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
-        this.Re = ( (a * divisor.Re)          + (b * divisor.Im) ) / 
-                  ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
-        this.Im = ( ((b * divisor.Re)         - (a * divisor.Im)) /
-                  ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );   
-    },
-    multiplyBy: function (factor)
-    {
-        // (a + jb) (c + jd) = ac + jad + jbc - bd
-        var a = this.Re;
-        var b = this.Im;
-        this.Re = (a * factor.Re) - (b * factor.Im);
-        this.Im = (a * factor.Im) + (b * factor.Re);
-    },
-    add: function (term)
-    {
-        this.Re += term.Re;
-        this.Im += term.Im;        
-    },
-    subtract: function (term)
-    {
-        this.Re -= term.Re;
-        this.Im -= term.Im;
-    }
-});
-
 // http://engineersphere.com/basic-electrical-concepts/frequency-response-for-mosfetbjt.html
 //http://ieeexplore.ieee.org/iel5/43/20141/00931011.pdf?arnumber=931011
 
-FDNA.Devices.Source = Class.extend(
-{
-    init: function (magnitude, phase, tolerance, state)
-    {
-        this.state = state;
-        this.tolerance = tolerance;
-        
-        // FIXME: do tolerance on value
-        this.magnitude = parseFloat(magnitude);
-        this.phase = parseFloat(phase);
-    }
-});
+FDNA = {
+        HighlightAndSyntaxCheckSimpleSource : function (source)
+        {    
+            // FIXME: can we have values use (p,n,u,m,K,M,G,T)
+            var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
+                sources =           /^\s*([VI])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
+                simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
+                probelocations =    /^\s*P\s+([\d]+)\s*$/i,
+                endcommand =        /^\s*E\s*$/i, 
+                comment =           /^\s*#(.*)$/,
+                highlightedSource = '<p>',
+                errors = new Array(),
+                lines = source.split("\n"),
+                count = lines.length,
+                i = 0;
 
-FDNA.Devices.CurrentSource = FDNA.Devices.Source.extend(
-{
-    init : function (pin1, pin2, magnitude, phase, tolerance, state)
-    {
-        this.type = 'I';
-        this._super(magnitude, phase, tolerance, state);
-        this.pins = new Array(parseInt(pin1), parseInt(pin2));
-        //this.impedance = new FDNA.ComplexNumber(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
-        // current flows opposite to convention of voltage +/-
-        this.admittance = new FDNA.ComplexNumber(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase));
-    },
-
-    getAdmittanceAtOmega: function (omega)
-    {
-        return this.admittance;
-    }
-});
-
-FDNA.Devices.VoltageSource = FDNA.Devices.Source.extend(
-{
-    init : function (pin1, pin2, magnitude, phase, tolerance, state)
-    {
-        this.type = 'V';
-        this._super(magnitude, phase, tolerance, state);
-        this.pins = new Array(parseInt(pin1), parseInt(pin2));
-        this.admittance = new FDNA.ComplexNumber(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
-    },
-
-    getAdmittanceAtOmega: function (omega)
-    {
-        return this.admittance;
-    }
-});
-
-FDNA.Devices.Probe = Class.extend(
-{
-    init: function (pin)
-    {
-        this.pin = pin;
-    }
-});
-
-FDNA.Devices.Passive = Class.extend(
-{
-    init: function (value, tolerance, state)
-    {
-        this.state = state;
-        this.tolerance = parseFloat(tolerance);
-        
-        // FIXME: do tolerance on value
-        this.value = parseFloat(value);
-    }
-});
-
-FDNA.Devices.Resistor = FDNA.Devices.Passive.extend(
-{
-    init : function (pin1, pin2, value, tolerance, state)
-    {
-        this.type = 'R';
-        this._super(value, tolerance, state);
-        this.pins = new Array(parseInt(pin1), parseInt(pin2));
-        // Zr = R
-        this.impedance = new FDNA.ComplexNumber(this.value, 0.0);
-        this.admittance = new FDNA.ComplexNumber(1.0 / this.value, 0.0);
-    },
-    
-    getAdmittanceAtOmega: function (omega)
-    {
-        return this.admittance;
-    }
-});
-
-FDNA.Devices.Capacitor = FDNA.Devices.Passive.extend(
-{
-    init : function (pin1, pin2, value, tolerance, state)
-    {
-        this.type = 'C';
-        this._super(value, tolerance, state);
-        this.pins = new Array(parseInt(pin1), parseInt(pin2));
-        // Zc = 1/jwC
-        this.impedance = new FDNA.ComplexNumber(0.0, 1.0 / this.value);
-        this.admittance = new FDNA.ComplexNumber(0.0, this.value);
-    },
-    
-    getAdmittanceAtOmega: function (omega)
-    {
-        var a = this.admittance.clone();
-        a.Im *= omega;
-        return a;
-    }
-});
-
-FDNA.Devices.Inductor = FDNA.Devices.Passive.extend(
-{
-    init : function (pin1, pin2, value, tolerance, state)
-    {
-        this.type = 'L';
-        this._super(value, tolerance, state);
-        this.pins = new Array(parseInt(pin1), parseInt(pin2));
-        // Zl = jwL
-        this.impedance = new FDNA.ComplexNumber(0.0, this.value);
-        this.admittance = new FDNA.ComplexNumber(0.0, - 1.0 / this.value);
-    },
-
-    getAdmittanceAtOmega: function (omega)
-    {
-        var a = this.admittance.clone();
-        a.Im *= 1.0/omega;
-        return a;
-    }
-});
-
-// http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html  
-// convert matrix [A] to upper diagonal form
-function eliminate (A)
-{
-    var i, j, k,
-        N = A.length;
-    for (i = 0; i < N; i++)
-    {
-        // find row with maximum in column i
-        var max_row = i;
-        for (j = i; j < N; j++)
-        {
-            if (A[j][i].getModulus() > A[max_row][i].getModulus())
-                max_row = j;
-        }
-        // swap max row with row i of [A:y]
-        for (k = i; k < N + 1; k++)
-        {
-            var tmp       = A[i][k].clone();
-            A[i][k]       = A[max_row][k];
-            A[max_row][k] = tmp;
-        }
-
-        // eliminate lower diagonal elements of [A]
-        for (j = i + 1; j < N; j++)
-        {
-            for (k = N; k > i; k--)
+            for (; i < count; i++)
             {
-                if (A[i][i].Re == 0.0 && A[i][i].Im == 0.0)
-                    return false;
+                highlightedSource += '<span class="linenum">'+i+'.</span>';
+                if (lines[i] == "" || lines[i].match(/^\s*$/))
+                    highlightedSource += '<br>';
+                else if (lines[i].match(components))
+                    highlightedSource += '<span class="keyword">'+RegExp.$1+'</span> <span class="node">'+RegExp.$2+'</span> <span class="node">'+RegExp.$3+'</span> <span class="value">'+RegExp.$4+'</span><br>';
+                else if (lines[i].match(sources))
+                    highlightedSource += '<span class="keyword">'+RegExp.$1+'</span> <span class="node">'+RegExp.$2+'</span> <span class="node">'+RegExp.$3+'</span> <span class="value">'+RegExp.$4+'</span> <span class="value">'+RegExp.$5+'</span><br>';
+                else if (lines[i].match(simulationinfo))
+                    highlightedSource += '<span class="keyword">F</span> <span class="value">'+RegExp.$1+'</span> <span class="value">'+RegExp.$2+'</span> <span class="value">'+RegExp.$3+'</span><br>';
+                else if (lines[i].match(probelocations))
+                    highlightedSource += '<span class="keyword">P</span> <span class="node">'+RegExp.$1+'</span><br>';
+                else if (lines[i].match(endcommand))
+                    highlightedSource += '<span class="keyword">E</span><br>';
+                else if (lines[i].match(comment))
+                    highlightedSource += '<span class="comment">&#35; '+RegExp.$1+'</span><br>';
                 else
                 {
-                    if (!A[j][i])
-                        A[j][i] = new FDNA.ComplexNumber(0.0,0.0);
-                    if (!A[i][k])
-                        A[i][k] = new FDNA.ComplexNumber(0.0,0.0);
-                    if (!A[j][k])
-                        A[j][k] = new FDNA.ComplexNumber(0.0,0.0);
-                    var tmp1 = A[j][i].clone(),
-                        tmp2 = A[i][k].clone(),
-                        tmp3 = A[j][k].clone();
-                    tmp1.divideBy(A[i][i]);
-                    tmp2.multiplyBy(tmp1);
-                    tmp3.subtract(tmp2);
-                    A[j][k] = tmp3;
+                    errors.push({line: i})
+                    highlightedSource += '<span class="syntaxerror">'+lines[i]+'</span><br>';
                 }
             }
-        }
-    }
 
-    return true;
-}
+            return {errors: errors, source: highlightedSource + '</p>'};
+        },
 
-// compute the values of vector x starting from the bottom
-function substitute(A)
-{
-    var j, k,
-        N = A.length;
-    X = new Array(A.length);
-    for (j = 0; j < A.length; j++)
-        X[j] = new FDNA.ComplexNumber(0.0,0.0);
-
-    for (j = N - 1; j >= 0; j--)
-    {
-        var sum = new FDNA.ComplexNumber(0.0,0.0);
-        for (k = j + 1; k < N; k++)
+        HighlightAndSyntaxCheckSPICESource : function (source)
+        {    
+            return {};
+        },
+        
+        // Complex Number Methods
+        ZMake : function (Re, Im)
         {
-            A[j][k].multiplyBy(X[k]);
-            sum.add(A[j][k]);
-        }
-        var tmp = A[j][N];
-        tmp.subtract(sum);
-        tmp.divideBy(A[j][j])
-        X[j] = tmp;
-    }
-    return X;
-}
+            return {Re:Re, Im:Im};
+        },
+        
+        ZMakeCopy : function (z)
+        {
+            return {Re:z.Re,Im:z.Im};
+        },
+        
+        ZModulus : function (z)
+        {
+            return Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
+        },
+        
+        ZArg : function (z)
+        {
+            return (z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0;
+        },
+        
+        ZArgInDegrees : function (z)
+        {
+            return this.ZArg(z) * (360/(2*Math.PI));
+        },
+        
+        ZDivide : function (z, divisor)
+        {
+            var a = z.Re;
+            var b = z.Im;
+            // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
+            // ( ac + jbc - jad + bd) / (cc + dd)
+            // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
+            var c = ( (a * divisor.Re)          + (b * divisor.Im) ) / 
+                      ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
+            var d = ( ((b * divisor.Re)         - (a * divisor.Im)) /
+                      ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );
+            return this.ZMake(c, d);
+        },
+        
+        ZMultiply : function (z, factor)
+        {
+            // (a + jb) (c + jd) = ac + jad + jbc - bd
+            var a = z.Re;
+            var b = z.Im;
+            var c = (a * factor.Re) - (b * factor.Im);
+            var d = (a * factor.Im) + (b * factor.Re);
+            return this.ZMake(c, d);
+        },
+        
+        ZAdd : function (z, term)
+        {
+            return this.ZMake( z.Re + term.Re, z.Im + term.Im);
+        },
+        
+        ZSubtract : function (z, term)
+        {
+            return this.ZMake( z.Re - term.Re, z.Im - term.Im);
+        },
+        
+        // Component Helper Methods
+        CurrentSourceMake : function (pin1, pin2, magnitude, phase, tolerance, state)
+        {
+            // current flows opposite to convention of voltage +/-
+            return {type:'I', 
+                    state:state, 
+                    tolerance:parseFloat(tolerance), 
+                    magnitude:parseFloat(magnitude), 
+                    phase:parseFloat(phase), 
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    admittance: this.ZMake(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase))
+                    //impedance: this.ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
+                    };
+        },
 
-FDNA.GaussianElimination = function(matrix)
-{
-    if (eliminate (matrix))
-        X = substitute(matrix);
-    else
-        alert("Singular matrix in Gaussian Elimination! This circuit cannot be solved.");
-    return X;
-}
+        CurrentSourceAdmittanceAtOmega : function (isrc, omega)
+        {
+            return isrc.admittance;
+        },
+
+        VoltageSourceMake : function (pin1, pin2, magnitude, phase, tolerance, state)
+        {
+            return {type:'V', 
+                    state:state, 
+                    tolerance:parseFloat(tolerance), 
+                    magnitude:parseFloat(magnitude), 
+                    phase:parseFloat(phase), 
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    admittance: this.ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase))
+                    };
+        },
+
+        VoltageSourceAdmittanceAtOmega : function (vsrc, omega)
+        {
+            return vsrc.admittance;
+        },
+        
+        ProbeMake : function (pin)
+        {
+            return {pin: pin};
+        },
+
+        ResistorMake : function (pin1, pin2, value, tolerance, state)
+        {
+            return {type: 'R',
+                    state: state,
+                    tolerance: parseFloat(tolerance),
+                    value: parseFloat(value),
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    // Zr = R
+                    //impedance : this.ZMake(this.value, 0.0),
+                    admittance : this.ZMake(1.0 / parseFloat(value), 0.0)
+                };                
+        },
+
+        ResistorAdmittanceAtOmega : function (res, omega)
+        {
+            return res.admittance;
+        },
+                
+        CapacitorMake : function (pin1, pin2, value, tolerance, state)
+        {
+            return {type: 'C',
+                    state: state,
+                    tolerance: parseFloat(tolerance),
+                    value: parseFloat(value),
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    // Zc = 1/jwC
+                    //impedance : this.ZMake(0.0, 1.0 / this.value),
+                    admittance : this.ZMake(0.0, parseFloat(value))
+                };                
+        },
+
+        CapacitorAdmittanceAtOmega : function (cap, omega)
+        {
+            var a = this.ZMakeCopy(cap.admittance);
+            a.Im *= omega;
+            return a;
+        },
+        
+        InductorMake : function (pin1, pin2, value, tolerance, state)
+        {
+            return {type: 'L',
+                    state: state,
+                    tolerance: parseFloat(tolerance),
+                    value: parseFloat(value),
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    // Zl = jwL
+                    //impedance : this.ZMake(0.0, this.value),
+                    admittance : this.ZMake(0.0, - 1.0 / parseFloat(value))
+                };                
+        },
+
+        InductorAdmittanceAtOmega : function (ind, omega)
+        {
+            var a = this.ZMakeCopy(ind.admittance);
+            a.Im *= 1.0/omega;
+            return a;
+        }
+};
+

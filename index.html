@@ -9,10 +9,8 @@
   <script type="text/javascript" src="lib/bluff/js-class.js"></script>
   <script type="text/javascript" src="lib/bluff/bluff-min.js"></script>
 
-  <script type="text/javascript" src="lib/SimpleJavascriptInheritance.js"></script>
+  <script type="text/javascript" src="lib/prototype.js"></script>
   <script type="text/javascript" src="src/FDNA.js"></script>
-  <script type="text/javascript" src="src/ParseCircuit.js"></script>
-  <script type="text/javascript" src="src/AnalyseCircuit.js"></script>
   <script type="text/javascript" src="main.js"></script>
 
 </head>
@@ -20,6 +18,7 @@
     <div id="desc">
         <h1>Frequency Domain (AC) Circuit Analysis</h1>
         <h2>AC analysis for simple electronic circuits</h2>
+        <p>Uses HTML5 Web Workers, tested in : WebKit, </p>
         <p>
             Supports two formats of circuit netlist: 
             a simple format described here (a simplified SPICE), and real SPICE format but with limitations (without component optional values and for now with numerical terminals).
@@ -31,6 +30,7 @@
             Copyright Stephen Ierodiaconou 2010, MIT License
         </p>
     </div>
+    Status: <p id="status"></p>
     <div id="editor">
         <form name="circuiteditor">
             <label for="examplecircuit">Example Circuits</label>

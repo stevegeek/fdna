@@ -4,6 +4,8 @@ Early version of FDNA
 Frequency Domain Nodal Analysis in Javascript. Generate frequency responses to circuits in the browser.
 http://www.stephenierodiaconou.com/fdna
 
+Uses Web Workers, your browser must support them!
+
 MORE DESCRIPTION TO FOLLOW. A future release will include a lot more functionality.
 
 ----------------------------------------------------------------------------

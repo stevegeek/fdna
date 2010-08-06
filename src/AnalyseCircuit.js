@@ -27,6 +27,88 @@
     THE SOFTWARE.
 */
 
+importScripts('FDNA.js'); 
+
+// http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html  
+// convert matrix [A] to upper diagonal form
+function eliminate (A)
+{
+    var i, j, k,
+        N = A.length;
+    for (i = 0; i < N; i++)
+    {
+        // find row with maximum in column i
+        var max_row = i;
+        for (j = i; j < N; j++)
+        {
+            if (FDNA.ZModulus(A[j][i]) > FDNA.ZModulus(A[max_row][i]))
+                max_row = j;
+        }
+        // swap max row with row i of [A:y]
+        for (k = i; k < N + 1; k++)
+        {
+            var tmp       = FDNA.ZMakeCopy(A[i][k]);
+            A[i][k]       = A[max_row][k];
+            A[max_row][k] = tmp;
+        }
+
+        // eliminate lower diagonal elements of [A]
+        for (j = i + 1; j < N; j++)
+        {
+            for (k = N; k > i; k--)
+            {
+                if (A[i][i].Re == 0.0 && A[i][i].Im == 0.0)
+                    return false;
+                else
+                {
+                    if (!A[j][i])
+                        A[j][i] = FDNA.ZMake(0.0,0.0);
+                    if (!A[i][k])
+                        A[i][k] = FDNA.ZMake(0.0,0.0);
+                    if (!A[j][k])
+                        A[j][k] = FDNA.ZMake(0.0,0.0);
+
+                    A[j][k] = FDNA.ZSubtract(A[j][k], FDNA.ZMultiply(A[i][k], FDNA.ZDivide(A[j][i], A[i][i])));
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+// compute the values of vector x starting from the bottom
+function substitute(A)
+{
+    var j, k,
+        N = A.length;
+    X = new Array(A.length);
+    for (j = 0; j < A.length; j++)
+        X[j] = FDNA.ZMake(0.0,0.0);
+
+    for (j = N - 1; j >= 0; j--)
+    {
+        var sum = FDNA.ZMake(0.0,0.0);
+        for (k = j + 1; k < N; k++)
+        {
+            A[j][k] = FDNA.ZMultiply(A[j][k], X[k]);
+            sum = FDNA.ZAdd(sum, A[j][k]);
+        }
+
+        X[j] = FDNA.ZDivide(FDNA.ZSubtract(A[j][N], sum), A[j][j]);
+    }
+    return X;
+}
+
+FDNA.GaussianElimination = function(matrix)
+{
+    if (eliminate (matrix))
+        X = substitute(matrix);
+    else
+        alert("Singular matrix in Gaussian Elimination! This circuit cannot be solved.");
+    return X;
+}
+
 FDNA.Analyse = function (circuit) 
 {
     var result = [],
@@ -167,10 +249,9 @@ FDNA.Analyse = function (circuit)
             for (node = 0; node < linearEquations[equ].length; node++)
             {
                 if (!matrix[equ][node])
-                    matrix[equ][node] = new FDNA.ComplexNumber(0.0, 0.0);
+                    matrix[equ][node] = FDNA.ZMake(0.0, 0.0);
                 if (!linearEquations[equ][node])
                 {
-                    //linearEquations[equ][node] = new FDNA.ComplexNumber(0.0, 0.0);
                     continue;
                 }
 
@@ -179,18 +260,48 @@ FDNA.Analyse = function (circuit)
                     //matrix[equ][node].add()
                     for (component = 0; component < linearEquations[equ][node].length; component++)
                     {
-                        matrix[equ][node].add(linearEquations[equ][node][component].getAdmittanceAtOmega(omega));
+                        switch (linearEquations[equ][node][component].type)
+                        {
+                            case 'V':
+                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'I':
+                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'R':
+                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'L':
+                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'C':
+                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                        }
                     }
                 }
                 else
                 {                    
                     for (component = 0; component < linearEquations[equ][node].length; component++)
                     {   
-                        // according to my old uni code ... 
-                        if (linearEquations[equ][node][component].type == 'V')
-                            continue;
-
-                        matrix[equ][node].subtract(linearEquations[equ][node][component].getAdmittanceAtOmega(omega));
+                        switch (linearEquations[equ][node][component].type)
+                        {
+                            case 'V':
+                                // according to uni code
+                                break;
+                            case 'I':
+                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'R':
+                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'L':
+                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                            case 'C':
+                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                break;
+                        }
                     }
                 }
 
@@ -207,3 +318,8 @@ FDNA.Analyse = function (circuit)
     
     return result;
 };
+
+self.addEventListener('message', function (event) 
+{
+    this.postMessage(FDNA.Analyse(event.data));
+}, false);
