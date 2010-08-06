@@ -1,7 +1,7 @@
 
 importScripts('FDNA.js');
 
-FDNA.ParseSimpleFormatCircuitFromString = function (source)
+function ParseSimpleFormatCircuitFromString (source)
 {
     // FIXME: can we have values use (p,n,u,m,K,M,G,T)
 
@@ -86,6 +86,6 @@ FDNA.ParseSimpleFormatCircuitFromString = function (source)
 
 self.addEventListener('message', function (event) 
 {
-    this.postMessage(FDNA.ParseSimpleFormatCircuitFromString(event.data));
+    this.postMessage(ParseSimpleFormatCircuitFromString(event.data));
 }, false);
 

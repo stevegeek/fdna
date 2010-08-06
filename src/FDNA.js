@@ -30,53 +30,6 @@
 //http://ieeexplore.ieee.org/iel5/43/20141/00931011.pdf?arnumber=931011
 
 FDNA = {
-        HighlightAndSyntaxCheckSimpleSource : function (source)
-        {    
-            // FIXME: can we have values use (p,n,u,m,K,M,G,T)
-            var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
-                sources =           /^\s*([VI])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
-                simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
-                probelocations =    /^\s*P\s+([\d]+)\s*$/i,
-                endcommand =        /^\s*E\s*$/i, 
-                comment =           /^\s*#(.*)$/,
-                highlightedSource = '<p>',
-                errors = new Array(),
-                lines = source.split("\n"),
-                count = lines.length,
-                i = 0;
-
-            for (; i < count; i++)
-            {
-                highlightedSource += '<span class="linenum">'+i+'.</span>';
-                if (lines[i] == "" || lines[i].match(/^\s*$/))
-                    highlightedSource += '<br>';
-                else if (lines[i].match(components))
-                    highlightedSource += '<span class="keyword">'+RegExp.$1+'</span> <span class="node">'+RegExp.$2+'</span> <span class="node">'+RegExp.$3+'</span> <span class="value">'+RegExp.$4+'</span><br>';
-                else if (lines[i].match(sources))
-                    highlightedSource += '<span class="keyword">'+RegExp.$1+'</span> <span class="node">'+RegExp.$2+'</span> <span class="node">'+RegExp.$3+'</span> <span class="value">'+RegExp.$4+'</span> <span class="value">'+RegExp.$5+'</span><br>';
-                else if (lines[i].match(simulationinfo))
-                    highlightedSource += '<span class="keyword">F</span> <span class="value">'+RegExp.$1+'</span> <span class="value">'+RegExp.$2+'</span> <span class="value">'+RegExp.$3+'</span><br>';
-                else if (lines[i].match(probelocations))
-                    highlightedSource += '<span class="keyword">P</span> <span class="node">'+RegExp.$1+'</span><br>';
-                else if (lines[i].match(endcommand))
-                    highlightedSource += '<span class="keyword">E</span><br>';
-                else if (lines[i].match(comment))
-                    highlightedSource += '<span class="comment">&#35; '+RegExp.$1+'</span><br>';
-                else
-                {
-                    errors.push({line: i})
-                    highlightedSource += '<span class="syntaxerror">'+lines[i]+'</span><br>';
-                }
-            }
-
-            return {errors: errors, source: highlightedSource + '</p>'};
-        },
-
-        HighlightAndSyntaxCheckSPICESource : function (source)
-        {    
-            return {};
-        },
-        
         // Complex Number Methods
         ZMake : function (Re, Im)
         {
