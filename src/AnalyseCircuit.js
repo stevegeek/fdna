@@ -27,169 +27,169 @@
     THE SOFTWARE.
 */
 
-//importScripts('FDNA.js'); 
+// Short names
+pF = parseFloat;
+pI = parseInt;
 
-FDNA = {
-        // Complex Number Methods
-        ZMake : function (Re, Im)
-        {
-            return {Re:Re, Im:Im};
-        },
-        
-        ZMakeCopy : function (z)
-        {
-            return {Re:z.Re,Im:z.Im};
-        },
-        
-        ZModulus : function (z)
-        {
-            return Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
-        },
-        
-        ZArg : function (z)
-        {
-            return (z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0;
-        },
-        
-        ZArgInDegrees : function (z)
-        {
-            return this.ZArg(z) * (360/(2*Math.PI));
-        },
-        
-        ZDivide : function (z, divisor)
-        {
-            var a = z.Re;
-            var b = z.Im;
-            // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
-            // ( ac + jbc - jad + bd) / (cc + dd)
-            // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
-            var c = ( (a * divisor.Re)          + (b * divisor.Im) ) / 
-                      ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
-            var d = ( ((b * divisor.Re)         - (a * divisor.Im)) /
-                      ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );
-            return this.ZMake(c, d);
-        },
-        
-        ZMultiply : function (z, factor)
-        {
-            // (a + jb) (c + jd) = ac + jad + jbc - bd
-            var a = z.Re;
-            var b = z.Im;
-            var c = (a * factor.Re) - (b * factor.Im);
-            var d = (a * factor.Im) + (b * factor.Re);
-            return this.ZMake(c, d);
-        },
-        
-        ZAdd : function (z, term)
-        {
-            return this.ZMake( z.Re + term.Re, z.Im + term.Im);
-        },
-        
-        ZSubtract : function (z, term)
-        {
-            return this.ZMake( z.Re - term.Re, z.Im - term.Im);
-        },
-        
-        // Component Helper Methods
-        CurrentSourceMake : function (pin1, pin2, magnitude, phase, tolerance, state)
-        {
-            // current flows opposite to convention of voltage +/-
-            return {type:'I', 
-                    state:state, 
-                    tolerance:parseFloat(tolerance), 
-                    magnitude:parseFloat(magnitude), 
-                    phase:parseFloat(phase), 
-                    pins: new Array(parseInt(pin1), parseInt(pin2)),
-                    admittance: this.ZMake(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase))
-                    //impedance: this.ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
-                    };
-        },
+// Complex Number Methods
+function ZMake(Re, Im)
+{
+    return {Re:Re, Im:Im};
+}
 
-        CurrentSourceAdmittanceAtOmega : function (isrc, omega)
-        {
-            return isrc.admittance;
-        },
+function ZMakeCopy(z)
+{
+    return {Re:z.Re,Im:z.Im};
+}
 
-        VoltageSourceMake : function (pin1, pin2, magnitude, phase, tolerance, state)
-        {
-            return {type:'V', 
-                    state:state, 
-                    tolerance:parseFloat(tolerance), 
-                    magnitude:parseFloat(magnitude), 
-                    phase:parseFloat(phase), 
-                    pins: new Array(parseInt(pin1), parseInt(pin2)),
-                    admittance: this.ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase))
-                    };
-        },
+function ZModulus(z)
+{
+    return Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
+}
 
-        VoltageSourceAdmittanceAtOmega : function (vsrc, omega)
-        {
-            return vsrc.admittance;
-        },
+function ZArg(z)
+{
+    return (z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0;
+}
+
+function ZArgInDegrees(z)
+{
+    return ZArg(z) * (360/(2*Math.PI));
+}
+
+function ZDivide(z, divisor)
+{
+    var a = z.Re;
+    var b = z.Im;
+    // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
+    // ( ac + jbc - jad + bd) / (cc + dd)
+    // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
+    var c = ( (a * divisor.Re)          + (b * divisor.Im) ) / 
+              ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
+    var d = ( ((b * divisor.Re)         - (a * divisor.Im)) /
+              ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );
+    return ZMake(c, d);
+}
+
+function ZMultiply(z, factor)
+{
+    // (a + jb) (c + jd) = ac + jad + jbc - bd
+    var a = z.Re;
+    var b = z.Im;
+    var c = (a * factor.Re) - (b * factor.Im);
+    var d = (a * factor.Im) + (b * factor.Re);
+    return ZMake(c, d);
+}
+
+function ZAdd(z, term)
+{
+    return ZMake( z.Re + term.Re, z.Im + term.Im);
+}
+
+function ZSubtract(z, term)
+{
+    return ZMake( z.Re - term.Re, z.Im - term.Im);
+}
+
+// Component Helper Methods
+function CurrentSourceMake(pin1, pin2, magnitude, phase, tolerance, state)
+{
+    // current flows opposite to convention of voltage +/-
+    return {type:'I', 
+            state:state, 
+            tolerance:pF(tolerance), 
+            magnitude:pF(magnitude), 
+            phase:pF(phase), 
+            pins: new Array(pI(pin1), pI(pin2)),
+            admittance: ZMake(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase))
+            //impedance: ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
+            };
+}
+
+function CurrentSourceAdmittanceAtOmega(isrc, omega)
+{
+    return isrc.admittance;
+}
+
+function VoltageSourceMake(pin1, pin2, magnitude, phase, tolerance, state)
+{
+    return {type:'V', 
+            state:state, 
+            tolerance:pF(tolerance), 
+            magnitude:pF(magnitude), 
+            phase:pF(phase), 
+            pins: new Array(pI(pin1), pI(pin2)),
+            admittance: ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase))
+            };
+}
+
+function VoltageSourceAdmittanceAtOmega(vsrc, omega)
+{
+    return vsrc.admittance;
+}
+
+function ProbeMake(pin)
+{
+    return {pin: pin};
+}
+
+function ResistorMake(pin1, pin2, value, tolerance, state)
+{
+    return {type: 'R',
+            state: state,
+            tolerance: pF(tolerance),
+            value: pF(value),
+            pins: new Array(pI(pin1), pI(pin2)),
+            // Zr = R
+            //impedance : ZMake(value, 0.0),
+            admittance : ZMake(1.0 / pF(value), 0.0)
+        };                
+}
+
+function ResistorAdmittanceAtOmega(res, omega)
+{
+    return res.admittance;
+}
         
-        ProbeMake : function (pin)
-        {
-            return {pin: pin};
-        },
+function CapacitorMake(pin1, pin2, value, tolerance, state)
+{
+    return {type: 'C',
+            state: state,
+            tolerance: pF(tolerance),
+            value: pF(value),
+            pins: new Array(pI(pin1), pI(pin2)),
+            // Zc = 1/jwC
+            //impedance : this.ZMake(0.0, 1.0 / value),
+            admittance : ZMake(0.0, pF(value))
+        };                
+}
 
-        ResistorMake : function (pin1, pin2, value, tolerance, state)
-        {
-            return {type: 'R',
-                    state: state,
-                    tolerance: parseFloat(tolerance),
-                    value: parseFloat(value),
-                    pins: new Array(parseInt(pin1), parseInt(pin2)),
-                    // Zr = R
-                    //impedance : this.ZMake(this.value, 0.0),
-                    admittance : this.ZMake(1.0 / parseFloat(value), 0.0)
-                };                
-        },
+function CapacitorAdmittanceAtOmega(cap, omega)
+{
+    var a = ZMakeCopy(cap.admittance);
+    a.Im *= omega;
+    return a;
+}
 
-        ResistorAdmittanceAtOmega : function (res, omega)
-        {
-            return res.admittance;
-        },
-                
-        CapacitorMake : function (pin1, pin2, value, tolerance, state)
-        {
-            return {type: 'C',
-                    state: state,
-                    tolerance: parseFloat(tolerance),
-                    value: parseFloat(value),
-                    pins: new Array(parseInt(pin1), parseInt(pin2)),
-                    // Zc = 1/jwC
-                    //impedance : this.ZMake(0.0, 1.0 / this.value),
-                    admittance : this.ZMake(0.0, parseFloat(value))
-                };                
-        },
+function InductorMake(pin1, pin2, value, tolerance, state)
+{
+    return {type: 'L',
+            state: state,
+            tolerance: pF(tolerance),
+            value: pF(value),
+            pins: new Array(pI(pin1), pI(pin2)),
+            // Zl = jwL
+            //impedance : ZMake(0.0, value),
+            admittance : ZMake(0.0, - 1.0 / pF(value))
+        };                
+}
 
-        CapacitorAdmittanceAtOmega : function (cap, omega)
-        {
-            var a = this.ZMakeCopy(cap.admittance);
-            a.Im *= omega;
-            return a;
-        },
-        
-        InductorMake : function (pin1, pin2, value, tolerance, state)
-        {
-            return {type: 'L',
-                    state: state,
-                    tolerance: parseFloat(tolerance),
-                    value: parseFloat(value),
-                    pins: new Array(parseInt(pin1), parseInt(pin2)),
-                    // Zl = jwL
-                    //impedance : this.ZMake(0.0, this.value),
-                    admittance : this.ZMake(0.0, - 1.0 / parseFloat(value))
-                };                
-        },
-
-        InductorAdmittanceAtOmega : function (ind, omega)
-        {
-            var a = this.ZMakeCopy(ind.admittance);
-            a.Im *= 1.0/omega;
-            return a;
-        }
-};
+function InductorAdmittanceAtOmega(ind, omega)
+{
+    var a = ZMakeCopy(ind.admittance);
+    a.Im *= 1.0/omega;
+    return a;
+}
 
 // http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html  
 // convert matrix [A] to upper diagonal form
@@ -203,13 +203,13 @@ function eliminate (A)
         var max_row = i;
         for (j = i; j < N; j++)
         {
-            if (FDNA.ZModulus(A[j][i]) > FDNA.ZModulus(A[max_row][i]))
+            if (ZModulus(A[j][i]) > ZModulus(A[max_row][i]))
                 max_row = j;
         }
         // swap max row with row i of [A:y]
         for (k = i; k < N + 1; k++)
         {
-            var tmp       = FDNA.ZMakeCopy(A[i][k]);
+            var tmp       = ZMakeCopy(A[i][k]);
             A[i][k]       = A[max_row][k];
             A[max_row][k] = tmp;
         }
@@ -224,13 +224,13 @@ function eliminate (A)
                 else
                 {
                     if (!A[j][i])
-                        A[j][i] = FDNA.ZMake(0.0,0.0);
+                        A[j][i] = ZMake(0.0,0.0);
                     if (!A[i][k])
-                        A[i][k] = FDNA.ZMake(0.0,0.0);
+                        A[i][k] = ZMake(0.0,0.0);
                     if (!A[j][k])
-                        A[j][k] = FDNA.ZMake(0.0,0.0);
+                        A[j][k] = ZMake(0.0,0.0);
 
-                    A[j][k] = FDNA.ZSubtract(A[j][k], FDNA.ZMultiply(A[i][k], FDNA.ZDivide(A[j][i], A[i][i])));
+                    A[j][k] = ZSubtract(A[j][k], ZMultiply(A[i][k], ZDivide(A[j][i], A[i][i])));
                 }
             }
         }
@@ -246,18 +246,18 @@ function substitute(A)
         N = A.length;
     X = new Array(A.length);
     for (j = 0; j < A.length; j++)
-        X[j] = FDNA.ZMake(0.0,0.0);
+        X[j] = ZMake(0.0,0.0);
 
     for (j = N - 1; j >= 0; j--)
     {
-        var sum = FDNA.ZMake(0.0,0.0);
+        var sum = ZMake(0.0,0.0);
         for (k = j + 1; k < N; k++)
         {
-            A[j][k] = FDNA.ZMultiply(A[j][k], X[k]);
-            sum = FDNA.ZAdd(sum, A[j][k]);
+            A[j][k] = ZMultiply(A[j][k], X[k]);
+            sum = ZAdd(sum, A[j][k]);
         }
 
-        X[j] = FDNA.ZDivide(FDNA.ZSubtract(A[j][N], sum), A[j][j]);
+        X[j] = ZDivide(ZSubtract(A[j][N], sum), A[j][j]);
     }
     return X;
 }
@@ -303,13 +303,13 @@ function ParseSimpleFormatCircuitFromString (source)
             switch (RegExp.$1)
             {
                 case 'R': case 'r':
-                    circuit.components.push(FDNA.ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    circuit.components.push(ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
                 case 'C': case 'c':
-                    circuit.components.push(FDNA.CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4))
+                    circuit.components.push(CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4))
                     break;
                 case 'L': case 'l':
-                    circuit.components.push(FDNA.InductorMake(RegExp.$2, RegExp.$3, RegExp.$4))
+                    circuit.components.push(InductorMake(RegExp.$2, RegExp.$3, RegExp.$4))
                     break;
             }
         }
@@ -318,22 +318,22 @@ function ParseSimpleFormatCircuitFromString (source)
             switch (RegExp.$1)
             {
                 case 'I': case 'i':
-                    circuit.currentsources.push(FDNA.CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    circuit.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
                     break;
                 case 'V': case 'v':
-                    circuit.components.push(FDNA.VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    circuit.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
                     break;   
             }
         }
         else if (lines[i].match(simulationinfo))
         {
-            circuit.simulationinfo.steps = parseInt(RegExp.$1);
-            circuit.simulationinfo.startFrequency = parseFloat(RegExp.$2);
-            circuit.simulationinfo.endFrequency = parseFloat(RegExp.$3);
+            circuit.simulationinfo.steps = pI(RegExp.$1);
+            circuit.simulationinfo.startFrequency = pF(RegExp.$2);
+            circuit.simulationinfo.endFrequency = pF(RegExp.$3);
         }
         else if (lines[i].match(probelocations))
         {
-            circuit.probes.push(FDNA.ProbeMake(RegExp.$1));
+            circuit.probes.push(ProbeMake(RegExp.$1));
         }
         else if (lines[i].match(endcommand))
         {
@@ -495,7 +495,7 @@ function Analyse (parseResult)
             for (node = 0; node < linearEquations[equ].length; node++)
             {
                 if (!matrix[equ][node])
-                    matrix[equ][node] = FDNA.ZMake(0.0, 0.0);
+                    matrix[equ][node] = ZMake(0.0, 0.0);
                 if (!linearEquations[equ][node])
                 {
                     continue;
@@ -509,19 +509,19 @@ function Analyse (parseResult)
                         switch (linearEquations[equ][node][component].type)
                         {
                             case 'V':
-                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZAdd(matrix[equ][node], VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'I':
-                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZAdd(matrix[equ][node], CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'R':
-                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZAdd(matrix[equ][node], ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'L':
-                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZAdd(matrix[equ][node], InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'C':
-                                matrix[equ][node] = FDNA.ZAdd(matrix[equ][node], FDNA.CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZAdd(matrix[equ][node], CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                         }
                     }
@@ -536,16 +536,16 @@ function Analyse (parseResult)
                                 // according to uni code
                                 break;
                             case 'I':
-                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZSubtract(matrix[equ][node], CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'R':
-                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZSubtract(matrix[equ][node], ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'L':
-                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZSubtract(matrix[equ][node], InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                             case 'C':
-                                matrix[equ][node] = FDNA.ZSubtract(matrix[equ][node], FDNA.CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                                matrix[equ][node] = ZSubtract(matrix[equ][node], CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                                 break;
                         }
                     }
