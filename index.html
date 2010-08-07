@@ -1,20 +1,19 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-  "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-  <title>JS FDNA</title>
-  <link rel="stylesheet" type="text/css" href="main.css">
+<!DOCTYPE html>
+<html><head><title>JS FDNA</title><meta charset="utf-8">
+    <meta name="description" content="Frequency domain analysis of electronic circuits, with source syntax checking, automatic circuit diagram generation, computation on Web Workers and graphing of results.">
+  <link rel="stylesheet" type="text/css" href="css/main.css">
 
-  <!--<script type="text/javascript" src="raphael/raphael-min.js"></script>-->
   <script type="text/javascript" src="lib/bluff/js-class.js"></script>
   <script type="text/javascript" src="lib/bluff/bluff-min.js"></script>
 
+  <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
   <script type="text/javascript" src="lib/prototype.js"></script>
   <script type="text/javascript" src="src/FDNA.js"></script>
   <script type="text/javascript" src="main.js"></script>
-
 </head>
 <body>
+    
+    
     <div id="desc">
         <h1>Frequency Domain (AC) Circuit Analysis</h1>
         <h2>AC analysis for simple electronic circuits</h2>
@@ -30,6 +29,8 @@
             Copyright Stephen Ierodiaconou 2010, MIT License
         </p>
     </div>
+    
+    
     Status: <p id="status"></p>
     <div id="editor">
         <form name="circuiteditor">
@@ -39,7 +40,7 @@
                 <option value="example2">Complex Example 2 (Simple format)</option>
                 <option value="example3">Simple Example 3 (Simple format)</option>
             </select><br>
-            <textarea name="circuit" rows="15" cols="30" onKeyPress="return checkSyntax()" onChange="return checkSyntax()" onBlur="return checkSyntax()"></textarea><br>
+            <textarea name="circuit" rows="15" cols="30"></textarea><br>
             <label for="format">Circuit Netlist Format</label>
             <select name="format">
                 <option value="simple" selected>Simple</option>
@@ -49,7 +50,7 @@
         </form>
     </div>
     <div id="sourceCode"></div>
-
+    
     <div id="circuitDiagram">
         <canvas id="diagramcanvas" width="800" height="600">
         This text is displayed if your browser does not support HTML5 Canvas.
@@ -58,12 +59,7 @@
         This text is displayed if your browser does not support HTML5 Canvas.
         </canvas>
     </div>
-
-    
-
-    
     <div id="plots"></div>
-
 </body>
 </html>
 

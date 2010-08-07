@@ -273,8 +273,6 @@ function drawCircuit()
     //DrawHProbe(context, 250,80);
     DrawVProbe(context, 310  ,80);
     
-    
-    
 }
 
 function checkSyntax()
@@ -295,12 +293,12 @@ function checkSyntax()
         
     document.getElementById('sourceCode').innerHTML = errorInfo + result.source;
     
-    return result.errors.length;
+    return (!result.errors.length) ? true : false;
 }
 
 function analyseCircuit()
 {
-    if (checkSyntax() == 0)
+    if (checkSyntax())
     {
         switch (document.circuiteditor.format.options[document.circuiteditor.format.selectedIndex].value)
         {
@@ -313,7 +311,7 @@ function analyseCircuit()
                     var result = event.data;
                     //console.log(result);
                     
-                    $('status').innerHTML = "Analysing...";
+                    $('status').innerHTML = "Analysing... (" + result.circuit.simulationinfo.startFrequency + "Hz to " + result.circuit.simulationinfo.endFrequency + "Hz in " + result.circuit.simulationinfo.steps + " steps)";
                     var analysisworker = new Worker('src/AnalyseCircuit.js');
                     analysisworker.postMessage(result.circuit);
                     analysisworker.addEventListener('message', function (event) 
@@ -395,10 +393,23 @@ function loadExample()
 }
 
 window.onload = function () 
-{
+{/*
+<iframe id="richeditor" style="width:500px; height:170px;"></iframe>
+    $('richeditor').contentWindow.document.designMode="on";
+    $('richeditor').contentWindow.document.open();
+    $('richeditor').contentWindow.document.write('<head><style type="text/css">body{ font-family:arial; font-size:13px; }</style> </head>');
+    $('richeditor').contentWindow.document.close();
+    
+    .document.execCommand("ForeColor","","red");
+*/
     loadExample();
     checkSyntax();
     drawCircuit();
+    
+    setInterval('checkSyntax()', 200);  // FIXME: implement a simple check if changed
+    
 }
+
+
 
 
