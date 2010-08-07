@@ -303,60 +303,68 @@ function analyseCircuit()
         switch (document.circuiteditor.format.options[document.circuiteditor.format.selectedIndex].value)
         {
             case 'simple':
-                $('status').innerHTML = "Parsing...";
-                var worker = new Worker('src/ParseSimpleFormat.js');
-                worker.postMessage(document.circuiteditor.circuit.value);
-                worker.addEventListener('message', function (event) 
-                {
-                    var result = event.data;
+                //$('status').innerHTML = "Parsing...";
+                //var worker = new Worker('src/ParseSimpleFormat.js');
+                //worker.postMessage(document.circuiteditor.circuit.value);
+                //worker.addEventListener('message', function (event) 
+                //{
+                    //var result = event.data;
                     //console.log(result);
                     
-                    $('status').innerHTML = "Analysing... (" + result.circuit.simulationinfo.startFrequency + "Hz to " + result.circuit.simulationinfo.endFrequency + "Hz in " + result.circuit.simulationinfo.steps + " steps)";
+                    //$('status').innerHTML = "Analysing... (" + result.circuit.simulationinfo.startFrequency + "Hz to " + result.circuit.simulationinfo.endFrequency + "Hz in " + result.circuit.simulationinfo.steps + " steps)";
+                    $('status').innerHTML = "Analysing...";
                     var analysisworker = new Worker('src/AnalyseCircuit.js');
-                    analysisworker.postMessage(result.circuit);
+                    //analysisworker.postMessage(result.circuit);
+                    analysisworker.postMessage(document.circuiteditor.circuit.value);
                     analysisworker.addEventListener('message', function (event) 
                     {
                         var analysed = event.data;
-                        $('status').innerHTML = "Graphing...";
-                        //console.log(analysed);
-                        
-                        // Make a graph object with canvas id and width
-                        var g = new Bluff.Line('graphcanvas', 800);
-                        g.tooltips = true;
-                        g.dot_radius = '1';
-                        g.legend_font_size = g.marker_font_size = '10';
-                        g.title_font_size = '15';
-
-                        // Set theme and options
-                        g.theme_greyscale();
-                        g.title = 'Steady State Voltage vs. Frequency';
-
-                        var sol = new Array(analysed[0].solution.length);
-                        var xaxis = {};
-                        var offsetxaxislabels = analysed.length / 10;
-                        for (var i =0; i < analysed.length; i++)
+                        if (analysed.error !== undefined)
+                            $('status').innerHTML = "Error: " + analysed.error;
+                        else
                         {
-                            for (var j =0; j < analysed[i].solution.length; j++)
+                            $('status').innerHTML = "Graphing...";
+                            //console.log(analysed);
+                        
+                            // Make a graph object with canvas id and width
+                            var g = new Bluff.Line('graphcanvas', 800);
+                            g.tooltips = true;
+                            g.dot_radius = '1';
+                            g.legend_font_size = g.marker_font_size = '10';
+                            g.title_font_size = '15';
+
+                            // Set theme and options
+                            g.theme_greyscale();
+                            g.title = 'Steady State Voltage vs. Frequency';
+
+                            var sol = new Array(analysed[0].solution.length);
+                            var xaxis = {};
+                            var offsetxaxislabels = analysed.length / 10;
+                            for (var i =0; i < analysed.length; i++)
                             {
-                                if (!sol[j])
-                                    sol[j] = [];
-                                sol[j].push(FDNA.ZModulus(analysed[i].solution[j])); 
+                                for (var j =0; j < analysed[i].solution.length; j++)
+                                {
+                                    if (!sol[j])
+                                        sol[j] = [];
+                                    var z = analysed[i].solution[j];
+                                    sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
+                                }
+                                if ((i % offsetxaxislabels)==0)
+                                    xaxis[i] = "" + analysed[i].frequency;
                             }
-                            if ((i % offsetxaxislabels)==0)
-                                xaxis[i] = "" + analysed[i].frequency;
+                            for (var i =0; i < sol.length; i++)
+                                g.data('node '+ (i+1) , sol[i]);
+
+                            g.labels = xaxis;
+                            g.x_axis_label = 'Frequency (Hz)';
+
+                            // Render the graph
+                            g.draw();
+                            $('status').innerHTML = "Done.";
                         }
-                        for (var i =0; i < sol.length; i++)
-                            g.data('node '+ (i+1) , sol[i]);
-
-                        g.labels = xaxis;
-                        g.x_axis_label = 'Frequency (Hz)';
-
-                        // Render the graph
-                        g.draw();
-                        $('status').innerHTML = "Done.";
                     });
                     
-                });
+                //});
                 break;
             case 'spice':
                 //result = FDNA.ParseSPICEFormatCircuitFromString(document.circuiteditor.circuit.value);

@@ -27,7 +27,169 @@
     THE SOFTWARE.
 */
 
-importScripts('FDNA.js'); 
+//importScripts('FDNA.js'); 
+
+FDNA = {
+        // Complex Number Methods
+        ZMake : function (Re, Im)
+        {
+            return {Re:Re, Im:Im};
+        },
+        
+        ZMakeCopy : function (z)
+        {
+            return {Re:z.Re,Im:z.Im};
+        },
+        
+        ZModulus : function (z)
+        {
+            return Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
+        },
+        
+        ZArg : function (z)
+        {
+            return (z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0;
+        },
+        
+        ZArgInDegrees : function (z)
+        {
+            return this.ZArg(z) * (360/(2*Math.PI));
+        },
+        
+        ZDivide : function (z, divisor)
+        {
+            var a = z.Re;
+            var b = z.Im;
+            // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
+            // ( ac + jbc - jad + bd) / (cc + dd)
+            // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
+            var c = ( (a * divisor.Re)          + (b * divisor.Im) ) / 
+                      ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
+            var d = ( ((b * divisor.Re)         - (a * divisor.Im)) /
+                      ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );
+            return this.ZMake(c, d);
+        },
+        
+        ZMultiply : function (z, factor)
+        {
+            // (a + jb) (c + jd) = ac + jad + jbc - bd
+            var a = z.Re;
+            var b = z.Im;
+            var c = (a * factor.Re) - (b * factor.Im);
+            var d = (a * factor.Im) + (b * factor.Re);
+            return this.ZMake(c, d);
+        },
+        
+        ZAdd : function (z, term)
+        {
+            return this.ZMake( z.Re + term.Re, z.Im + term.Im);
+        },
+        
+        ZSubtract : function (z, term)
+        {
+            return this.ZMake( z.Re - term.Re, z.Im - term.Im);
+        },
+        
+        // Component Helper Methods
+        CurrentSourceMake : function (pin1, pin2, magnitude, phase, tolerance, state)
+        {
+            // current flows opposite to convention of voltage +/-
+            return {type:'I', 
+                    state:state, 
+                    tolerance:parseFloat(tolerance), 
+                    magnitude:parseFloat(magnitude), 
+                    phase:parseFloat(phase), 
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    admittance: this.ZMake(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase))
+                    //impedance: this.ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
+                    };
+        },
+
+        CurrentSourceAdmittanceAtOmega : function (isrc, omega)
+        {
+            return isrc.admittance;
+        },
+
+        VoltageSourceMake : function (pin1, pin2, magnitude, phase, tolerance, state)
+        {
+            return {type:'V', 
+                    state:state, 
+                    tolerance:parseFloat(tolerance), 
+                    magnitude:parseFloat(magnitude), 
+                    phase:parseFloat(phase), 
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    admittance: this.ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase))
+                    };
+        },
+
+        VoltageSourceAdmittanceAtOmega : function (vsrc, omega)
+        {
+            return vsrc.admittance;
+        },
+        
+        ProbeMake : function (pin)
+        {
+            return {pin: pin};
+        },
+
+        ResistorMake : function (pin1, pin2, value, tolerance, state)
+        {
+            return {type: 'R',
+                    state: state,
+                    tolerance: parseFloat(tolerance),
+                    value: parseFloat(value),
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    // Zr = R
+                    //impedance : this.ZMake(this.value, 0.0),
+                    admittance : this.ZMake(1.0 / parseFloat(value), 0.0)
+                };                
+        },
+
+        ResistorAdmittanceAtOmega : function (res, omega)
+        {
+            return res.admittance;
+        },
+                
+        CapacitorMake : function (pin1, pin2, value, tolerance, state)
+        {
+            return {type: 'C',
+                    state: state,
+                    tolerance: parseFloat(tolerance),
+                    value: parseFloat(value),
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    // Zc = 1/jwC
+                    //impedance : this.ZMake(0.0, 1.0 / this.value),
+                    admittance : this.ZMake(0.0, parseFloat(value))
+                };                
+        },
+
+        CapacitorAdmittanceAtOmega : function (cap, omega)
+        {
+            var a = this.ZMakeCopy(cap.admittance);
+            a.Im *= omega;
+            return a;
+        },
+        
+        InductorMake : function (pin1, pin2, value, tolerance, state)
+        {
+            return {type: 'L',
+                    state: state,
+                    tolerance: parseFloat(tolerance),
+                    value: parseFloat(value),
+                    pins: new Array(parseInt(pin1), parseInt(pin2)),
+                    // Zl = jwL
+                    //impedance : this.ZMake(0.0, this.value),
+                    admittance : this.ZMake(0.0, - 1.0 / parseFloat(value))
+                };                
+        },
+
+        InductorAdmittanceAtOmega : function (ind, omega)
+        {
+            var a = this.ZMakeCopy(ind.admittance);
+            a.Im *= 1.0/omega;
+            return a;
+        }
+};
 
 // http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html  
 // convert matrix [A] to upper diagonal form
@@ -100,7 +262,7 @@ function substitute(A)
     return X;
 }
 
-FDNA.GaussianElimination = function(matrix)
+function GaussianElimination(matrix)
 {
     if (eliminate (matrix))
         X = substitute(matrix);
@@ -109,19 +271,103 @@ FDNA.GaussianElimination = function(matrix)
     return X;
 }
 
-FDNA.Analyse = function (circuit) 
+function ParseSimpleFormatCircuitFromString (source)
 {
+    // FIXME: can we have values use (p,n,u,m,K,M,G,T)
+
+    var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
+        sources =           /^\s*([IV])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
+        simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
+        probelocations =    /^\s*P\s+([\d]+)\s*$/i,
+        endcommand =        /^\s*E\s*$/i, 
+        comment =           /^\s*#(.*)$/,
+        errors = new Array();
+        lines = source.split("\n"),
+        count = lines.length,
+        circuit = {
+            simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
+            components: new Array(), 
+            currentsources: new Array(),
+            probes: new Array()
+        },
+        i = 0;
+
+    for (; i < count; i++)
+    {
+        if (lines[i] == "" || lines[i].match(/^\s*$/))
+        {
+            
+        }
+        else if (lines[i].match(components))
+        {
+            switch (RegExp.$1)
+            {
+                case 'R': case 'r':
+                    circuit.components.push(FDNA.ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    break;
+                case 'C': case 'c':
+                    circuit.components.push(FDNA.CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4))
+                    break;
+                case 'L': case 'l':
+                    circuit.components.push(FDNA.InductorMake(RegExp.$2, RegExp.$3, RegExp.$4))
+                    break;
+            }
+        }
+        else if (lines[i].match(sources))
+        {
+            switch (RegExp.$1)
+            {
+                case 'I': case 'i':
+                    circuit.currentsources.push(FDNA.CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    break;
+                case 'V': case 'v':
+                    circuit.components.push(FDNA.VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    break;   
+            }
+        }
+        else if (lines[i].match(simulationinfo))
+        {
+            circuit.simulationinfo.steps = parseInt(RegExp.$1);
+            circuit.simulationinfo.startFrequency = parseFloat(RegExp.$2);
+            circuit.simulationinfo.endFrequency = parseFloat(RegExp.$3);
+        }
+        else if (lines[i].match(probelocations))
+        {
+            circuit.probes.push(FDNA.ProbeMake(RegExp.$1));
+        }
+        else if (lines[i].match(endcommand))
+        {
+            // stop parsing
+            break;
+        }
+        else if (lines[i].match(comment))
+        {
+            // ignore
+        }
+        else
+        {
+            errors.push({line: i});
+        }
+    }
+
+    return {errors: errors, circuit: circuit};
+}
+
+function Analyse (parseResult) 
+{
+
+    if (parseResult.errors.length != 0)
+    {
+        return {error:"Circuit failed to parse!"};
+    }
+
     var result = [],
         linearEquations = [],
+        circuit = parseResult.circuit,
         count = circuit.components.length,
         maxNode = 0,
         i = 0;
-        
-    if (!count)
-    {
-        return {error:"No components found in circuit!"};
-    }
-    
+
     for (; i < count; i++)
     {
         // FIXME: pins assumed to be 2
@@ -310,7 +556,7 @@ FDNA.Analyse = function (circuit)
         
         // solve matrix
         result[step] = {};
-        result[step].solution = FDNA.GaussianElimination(matrix);
+        result[step].solution = GaussianElimination(matrix);
         result[step].frequency = frequency;
         result[step].omega = omega;
         frequency += fstep;
@@ -321,5 +567,5 @@ FDNA.Analyse = function (circuit)
 
 self.addEventListener('message', function (event) 
 {
-    this.postMessage(FDNA.Analyse(event.data));
+    this.postMessage(Analyse(ParseSimpleFormatCircuitFromString(event.data)));
 }, false);
