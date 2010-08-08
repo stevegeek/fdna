@@ -387,7 +387,7 @@ function Analyse (parseResult)
         linearEquations[node] = [];
         for (var unknown = 0; unknown < maxNode+1; unknown++)
         {
-            linearEquations[node][unknown] = {in:[], out:[]};
+            linearEquations[node][unknown] = {input:[], output:[]};
         }
 
         // For all components
@@ -407,26 +407,27 @@ function Analyse (parseResult)
             {
                 if (component.type == 'I')
                 {
-                    linearEquations[pin1][maxNode].in.push(component);
+                    // TODO Check wether this orientation is correct otherwise we will get inverted results
+                    linearEquations[pin1][maxNode].input.push(component);
                 }
                 else
                 {
-                    linearEquations[pin1][pin1].in.push(component);
+                    linearEquations[pin1][pin1].input.push(component);
                     if (pin2 >= 0)
-                        linearEquations[pin1][pin2].out.push(component);
+                        linearEquations[pin1][pin2].output.push(component);
                 }
             }
             else if (pin2 == node)
             {
                 if (component.type == 'I')
                 {
-                    linearEquations[pin2][maxNode].out.push(component);
+                    linearEquations[pin2][maxNode].output.push(component);
                 }
                 else
                 {
-                    linearEquations[pin2][pin2].in.push(component);
+                    linearEquations[pin2][pin2].input.push(component);
                     if (pin1 >= 0)
-                        linearEquations[pin2][pin1].out.push(component);
+                        linearEquations[pin2][pin1].output.push(component);
                 }
             }
         }
@@ -452,9 +453,9 @@ function Analyse (parseResult)
                 if (!matrix[equ][node])
                     matrix[equ][node] = ZMake(0.0, 0.0);
                     
-                for (var i = 0; i < linearEquations[equ][node].in.length; i++)
+                for (var i = 0; i < linearEquations[equ][node].input.length; i++)
                 {
-                    var component = linearEquations[equ][node].in[i];
+                    var component = linearEquations[equ][node].input[i];
                     switch (component.type)
                     {
                         //case 'V':
@@ -474,9 +475,9 @@ function Analyse (parseResult)
                             break;
                     }
                 }
-                for (var o = 0; o < linearEquations[equ][node].out.length; o++)
+                for (var o = 0; o < linearEquations[equ][node].output.length; o++)
                 {
-                    var component = linearEquations[equ][node].out[o];
+                    var component = linearEquations[equ][node].output[o];
                     switch (component.type)
                     {
                         //case 'V':
@@ -501,10 +502,7 @@ function Analyse (parseResult)
         
         //return matrix;
         // solve matrix
-        result[step] = {};
-        result[step].solution = GaussianElimination(matrix);
-        result[step].frequency = frequency;
-        result[step].omega = omega;
+        result[step] = {solution: GaussianElimination(matrix),frequency: frequency, omega: omega};
         frequency += fstep;
     }
     

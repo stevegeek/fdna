@@ -296,6 +296,12 @@ function checkSyntax()
     return (!result.errors.length) ? true : false;
 }
 
+//http://forums.devarticles.com/javascript-development-22/javascript-to-round-to-2-decimal-places-36190.html
+function roundNumber(num, dec) {
+    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+    return result;
+}
+
 function analyseCircuit()
 {
     if (checkSyntax())
@@ -349,9 +355,10 @@ function analyseCircuit()
                                         sol[j] = [];
                                     var z = analysed[i].solution[j];
                                     sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
+                                    //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0); 
                                 }
                                 if ((i % offsetxaxislabels)==0)
-                                    xaxis[i] = "" + analysed[i].frequency;
+                                    xaxis[i] = "" + roundNumber(analysed[i].frequency,3);
                             }
                             for (var i =0; i < sol.length; i++)
                                 g.data('node '+ (i+1) , sol[i]);
