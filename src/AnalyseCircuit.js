@@ -27,6 +27,9 @@
     THE SOFTWARE.
 */
 
+// Optimisations: 
+// note http://jsperf.com/adding-items-array/6  shows a[i] = blah; to be faster than a.push(blah) in webkit
+
 // Short names
 pF = parseFloat;
 pI = parseInt;
@@ -287,7 +290,6 @@ function ParseSimpleFormatCircuitFromString (source)
         circuit = {
             simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
             components: new Array(), 
-            //currentsources: new Array(),
             probes: new Array()
         },
         i = 0;
@@ -506,7 +508,7 @@ function Analyse (parseResult)
         frequency += fstep;
     }
     
-    return result;
+    return {result:result, circuit:circuit};
 };
 
 self.addEventListener('message', function (event) 

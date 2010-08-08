@@ -302,6 +302,85 @@ function roundNumber(num, dec) {
     return result;
 }
 
+function drawGraphs(data)
+{
+    // remove previous graphs
+    var graphs = $('plots').select('canvas.graph'),
+        i = 0;
+        
+    for (; i < graphs.length; i++)
+        graphs[i].remove();
+
+    for (i = 0; i < data.circuit.probes.length; i++)
+    {
+        var w = 500,
+            h = 300,
+            node = data.circuit.probes[i].pin - 1,
+            c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
+            context = c.getContext("2d");
+
+        // Mag
+        $('plots').appendChild(c);
+        context.beginPath();
+        context.fillText("Node " + (node+1), 10.5, 10.5);
+        context.moveTo(30.5,30.5);
+        context.lineTo(30.5,h-20.5);
+        context.moveTo(20.5,h-30.5);
+        context.lineTo(w-30.5,h-30.5);
+        context.strokeStyle = "#000";
+        context.stroke();
+        
+        var stepanalysis = data.result,
+            points = [],
+            datalen = stepanalysis.length,
+            graphoffset = 65,  // this is the distance difference from the canvas w/h to scale the graph to
+            //datalen = solution.length,
+            datastep = (datalen > (w - graphoffset)) ? (datalen / (w - graphoffset)) : 1,
+            axisstep = (datalen < (w - graphoffset)) ? ((w - graphoffset) / datalen) : 1, //(w - 60) / datalen,
+            p = 0;
+            
+        // normalise y axis
+        //sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
+        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0);
+
+        console.log(datalen)
+        console.log(datastep)
+        console.log(axisstep)
+
+        var maxval = -10000.0, minval = 10000.0;
+        for (p = 0; p < datalen; p++)
+        {
+            var z = stepanalysis[p].solution[node];
+            points[p] = Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
+            if (points[p] > maxval)
+                maxval = points[p];
+            if (points[p] < minval)
+                minval = points[p];
+        }
+        //console.log(points)
+        //console.log(minval)
+        //console.log(maxval)
+        //return
+        for (p = 0; p < datalen; p++)
+        {
+            points[p] = (points[p] - minval) / (maxval - minval);
+            //points[p] /= maxval;
+        }
+        //console.log(points)
+        // plot mag
+        context.beginPath();
+        context.moveTo(30.5,h-30.5);
+        var s = 0;
+        for (p = 0; p < datalen / datastep; p+=datastep)
+        {    
+            //console.log(points[p])
+            context.lineTo(30.5+(axisstep*s), (h-30.5) - (points[Math.round(p)]*(h-graphoffset)));   
+            s++;
+        }
+        context.stroke();
+    }
+}
+
 function analyseCircuit()
 {
     if (checkSyntax())
@@ -332,6 +411,10 @@ function analyseCircuit()
                         {
                             $('status').innerHTML = "Graphing...";
                             //console.log(analysed);
+                        
+                            drawGraphs(analysed);
+                            /*
+                            analysed = analysed.result;
                         
                             // Make a graph object with canvas id and width
                             var g = new Bluff.Line('graphcanvas', 800);
@@ -368,6 +451,12 @@ function analyseCircuit()
 
                             // Render the graph
                             g.draw();
+                            */
+                            
+                            
+                            
+                            
+                            
                             $('status').innerHTML = "Done.";
                         }
                     });

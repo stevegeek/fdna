@@ -8,7 +8,7 @@ For a detailed discussion on RLC circuits see [Wikipedia/RLC](http://en.wikipedi
 
 [Source code at GitHub](http://github.com/stevegeek/fdna)
 
-Uses Web Workers, your browser must support them!
+Uses Web Workers and canvas, your browser must support them!
 
 
 Supports two formats of circuit netlist: 

@@ -29,12 +29,12 @@
 
 #editor
 {
-    float:left;
+    /*float:left;*/
 }
 
 #sourceCode
 {
-    float:left;
+    /*float:left;*/
     font-family:"courier";
     background-color:beige;
     padding:10px;
@@ -43,8 +43,8 @@
 
 #circuitDiagram
 {
-    float:left;
-    clear: left;
+    /*float:left;
+    clear: left;*/
 }
 
 .linenum
@@ -73,4 +73,9 @@
 {
     color:white;
     background-color:darkred;
+}
+
+.graph 
+{
+    border: 1px solid black;
 }
