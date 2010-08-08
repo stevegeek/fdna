@@ -318,6 +318,7 @@ function analyseCircuit()
                     analysisworker.postMessage(document.circuiteditor.circuit.value);
                     analysisworker.addEventListener('message', function (event) 
                     {
+                        console.log(event.data)
                         var analysed = event.data;
                         if (analysed.error !== undefined)
                             $('status').innerHTML = "Error: " + analysed.error;
@@ -390,7 +391,9 @@ function loadExample()
             document.circuiteditor.format.options[0].selected = true;
             break;
         case 'example3':
-            document.circuiteditor.circuit.value = "R 1 2 10000\nR 2 3 100\nC 1 2 1e-7\nC 3 0 1e-6\nI 1 0 0.01 0.0\nF 500 10 2e3\nP 2\nE";
+            //document.circuiteditor.circuit.value = "R 1 2 1\nL 2 3 1\nC 3 0 1\nV 1 0 1 0.0\nF 50 0.0001 1.1\nP 2\nE";
+            
+            document.circuiteditor.circuit.value = "I 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
             document.circuiteditor.format.options[0].selected = true;
             break;
         case 'testspice':

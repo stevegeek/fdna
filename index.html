@@ -8,29 +8,14 @@
 
   <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
   <script type="text/javascript" src="lib/prototype.js"></script>
-  <script type="text/javascript" src="main.js"></script>
+  <script type="text/javascript" src="src/main.js"></script>
 </head>
 <body>
-    
-    
-    <div id="desc">
-        <h1>Frequency Domain (AC) Circuit Analysis</h1>
-        <h2>AC analysis for simple electronic circuits</h2>
-        <p>Uses HTML5 Web Workers, tested in : WebKit, </p>
-        <p>
-            Supports two formats of circuit netlist: 
-            a simple format described here (a simplified SPICE), and real SPICE format but with limitations (without component optional values and for now with numerical terminals).
-        </p>
-        <p>
-            <a href="http://github.com/stevegeek/fdna">Source code at GitHub</a>
-        </p>
-        <p>
-            Copyright Stephen Ierodiaconou 2010, MIT License
-        </p>
-    </div>
-    
+<h1>Frequency Domain RLC Circuit Analysis</h1><h2>Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC circuits.</h2><p>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><p>Copyright Stephen Ierodiaconou 2010, MIT License</p>
     
     Status: <p id="status"></p>
+    
+    
     <div id="editor">
         <form name="circuiteditor">
             <label for="examplecircuit">Example Circuits</label>
@@ -48,17 +33,26 @@
             <input type="button" value="Analyse..." onClick="return analyseCircuit()">
         </form>
     </div>
+    
+    
     <div id="sourceCode"></div>
     
+    
+    
     <div id="circuitDiagram">
-        <canvas id="diagramcanvas" width="800" height="600">
+        <canvas id="diagramcanvas" width="500" height="300">
         This text is displayed if your browser does not support HTML5 Canvas.
         </canvas>
         <canvas id="graphcanvas" width="800" height="600">
         This text is displayed if your browser does not support HTML5 Canvas.
         </canvas>
     </div>
+    
+    
     <div id="plots"></div>
+    
+    
+    
 </body>
 </html>
 

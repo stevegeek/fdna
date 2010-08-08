@@ -287,7 +287,7 @@ function ParseSimpleFormatCircuitFromString (source)
         circuit = {
             simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
             components: new Array(), 
-            currentsources: new Array(),
+            //currentsources: new Array(),
             probes: new Array()
         },
         i = 0;
@@ -306,10 +306,10 @@ function ParseSimpleFormatCircuitFromString (source)
                     circuit.components.push(ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
                 case 'C': case 'c':
-                    circuit.components.push(CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4))
+                    circuit.components.push(CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
                 case 'L': case 'l':
-                    circuit.components.push(InductorMake(RegExp.$2, RegExp.$3, RegExp.$4))
+                    circuit.components.push(InductorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
             }
         }
@@ -318,10 +318,11 @@ function ParseSimpleFormatCircuitFromString (source)
             switch (RegExp.$1)
             {
                 case 'I': case 'i':
-                    circuit.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    //circuit.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    circuit.components.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
                     break;
                 case 'V': case 'v':
-                    circuit.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    circuit.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
                     break;   
             }
         }
@@ -355,128 +356,82 @@ function ParseSimpleFormatCircuitFromString (source)
 
 function Analyse (parseResult) 
 {
-
     if (parseResult.errors.length != 0)
     {
         return {error:"Circuit failed to parse!"};
     }
 
     var result = [],
-        linearEquations = [],
         circuit = parseResult.circuit,
         count = circuit.components.length,
         maxNode = 0,
         i = 0;
-
+        
+    // get max nodes
     for (; i < count; i++)
     {
-        // FIXME: pins assumed to be 2
-        
-        // We subtract 1 as the 0 node is assumed to be the reference node and does not have equs built for it
-        var pin1 = circuit.components[i].pins[0] - 1,
-            pin2 = circuit.components[i].pins[1] - 1;
-            
+        var pin1 = circuit.components[i].pins[0],
+            pin2 = circuit.components[i].pins[1];
+        if (pin1 == pin2)
+            return {error:"Components cannot have their pins connected to the same node"};
         if (pin1 > maxNode)
             maxNode = pin1;
         if (pin2 > maxNode)
             maxNode = pin2;
-                
-        if (pin1 >= 0)
-        {    
-            if (!linearEquations[pin1])
-                linearEquations[pin1] = new Array();
-            if (pin1 != pin2)
+    }
+
+    // create matrix
+    var linearEquations = [];
+    for (var node = 0; node < maxNode; node++)
+    {
+        linearEquations[node] = [];
+        for (var unknown = 0; unknown < maxNode+1; unknown++)
+        {
+            linearEquations[node][unknown] = {in:[], out:[]};
+        }
+
+        // For all components
+        for (var componentindex = 0; componentindex < count; componentindex++)
+        {
+            // We subtract 1 as the 0 node is assumed to be the reference node and does not have equs built for it
+            var component = circuit.components[componentindex],
+                pin1 = component.pins[0] - 1,
+                pin2 = component.pins[1] - 1;
+
+            if (pin1 != node && pin2 != node) // if component connected to this node
+                continue;
+
+
+            // TODO: optimise this to remove duplication
+            if (pin1 == node)
             {
-                if (!linearEquations[pin1][pin1])
-                    linearEquations[pin1][pin1] = new Array();
-
-                linearEquations[pin1][pin1].push(circuit.components[i]);
-
-                if (pin2 >= 0)
+                if (component.type == 'I')
                 {
-                    if (!linearEquations[pin1][pin2])
-                        linearEquations[pin1][pin2] = new Array();
-
-                    linearEquations[pin1][pin2].push(circuit.components[i]);
+                    linearEquations[pin1][maxNode].in.push(component);
+                }
+                else
+                {
+                    linearEquations[pin1][pin1].in.push(component);
+                    if (pin2 >= 0)
+                        linearEquations[pin1][pin2].out.push(component);
                 }
             }
-        }
-        
-        if (pin2 >= 0)
-        {
-            if (!linearEquations[pin2])
-                linearEquations[pin2] = new Array();
-            if (pin1 != pin2)
+            else if (pin2 == node)
             {
-                if (!linearEquations[pin2][pin2])
-                    linearEquations[pin2][pin2] = new Array();
-                
-                linearEquations[pin2][pin2].push(circuit.components[i]);
-
-                if (pin1 >= 0)
+                if (component.type == 'I')
                 {
-                    if (!linearEquations[pin2][pin1])
-                        linearEquations[pin2][pin1] = new Array();
-
-                    linearEquations[pin2][pin1].push(circuit.components[i]);
+                    linearEquations[pin2][maxNode].out.push(component);
                 }
-            }
-        }
-    }
-    
-    count = circuit.currentsources.length;
-    var rhs = maxNode + 1;
-
-    if (!count)
-    {
-        return {error:"No current sources found in circuit!"};
-    }
-    
-    for (i = 0; i < count; i++)
-    {
-        var pin1 = circuit.currentsources[i].pins[0] - 1,
-            pin2 = circuit.currentsources[i].pins[1] - 1;
-            
-        if (pin1 >= 0)
-        {    
-            if (!linearEquations[pin1])
-                linearEquations[pin1] = new Array();
-            
-            if (!linearEquations[pin1][rhs])
-                linearEquations[pin1][rhs] = new Array();
-
-            linearEquations[pin1][rhs].push(circuit.currentsources[i]);
-
-            if (pin2 >= 0)
-            {
-                if (!linearEquations[pin2][rhs])
-                    linearEquations[pin2][rhs] = new Array();
-
-                linearEquations[pin2][rhs].push(circuit.currentsources[i]);
-            }
-        }
-
-        if (pin2 >= 0)
-        {
-            if (!linearEquations[pin2])
-                linearEquations[pin2] = new Array();
-            
-            if (!linearEquations[pin2][rhs])
-                linearEquations[pin2][rhs] = new Array();
-
-            linearEquations[pin2][rhs].push(circuit.currentsources[i]);
-
-            if (pin1 >= 0)
-            {
-                if (!linearEquations[pin1][rhs])
-                    linearEquations[pin1][rhs] = new Array();
-
-                linearEquations[pin1][rhs].push(circuit.currentsources[i]);
+                else
+                {
+                    linearEquations[pin2][pin2].in.push(component);
+                    if (pin1 >= 0)
+                        linearEquations[pin2][pin1].out.push(component);
+                }
             }
         }
     }
     // Solve
-    
     var frequency = circuit.simulationinfo.startFrequency,
         fstep =  (circuit.simulationinfo.endFrequency - circuit.simulationinfo.startFrequency) / circuit.simulationinfo.steps,
         step = 0,
@@ -496,64 +451,55 @@ function Analyse (parseResult)
             {
                 if (!matrix[equ][node])
                     matrix[equ][node] = ZMake(0.0, 0.0);
-                if (!linearEquations[equ][node])
+                    
+                for (var i = 0; i < linearEquations[equ][node].in.length; i++)
                 {
-                    continue;
-                }
-
-                if (equ == node)
-                {
-                    //matrix[equ][node].add()
-                    for (component = 0; component < linearEquations[equ][node].length; component++)
+                    var component = linearEquations[equ][node].in[i];
+                    switch (component.type)
                     {
-                        switch (linearEquations[equ][node][component].type)
-                        {
-                            case 'V':
-                                matrix[equ][node] = ZAdd(matrix[equ][node], VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'I':
-                                matrix[equ][node] = ZAdd(matrix[equ][node], CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'R':
-                                matrix[equ][node] = ZAdd(matrix[equ][node], ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'L':
-                                matrix[equ][node] = ZAdd(matrix[equ][node], InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'C':
-                                matrix[equ][node] = ZAdd(matrix[equ][node], CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                        }
+                        //case 'V':
+                        //    matrix[equ][node] = ZAdd(matrix[equ][node], VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                        //    break;
+                        case 'I':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], CurrentSourceAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'R':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], ResistorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'L':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], InductorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'C':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], CapacitorAdmittanceAtOmega(component, omega));
+                            break;
                     }
                 }
-                else
-                {                    
-                    for (component = 0; component < linearEquations[equ][node].length; component++)
-                    {   
-                        switch (linearEquations[equ][node][component].type)
-                        {
-                            case 'V':
-                                // according to uni code
-                                break;
-                            case 'I':
-                                matrix[equ][node] = ZSubtract(matrix[equ][node], CurrentSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'R':
-                                matrix[equ][node] = ZSubtract(matrix[equ][node], ResistorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'L':
-                                matrix[equ][node] = ZSubtract(matrix[equ][node], InductorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                            case 'C':
-                                matrix[equ][node] = ZSubtract(matrix[equ][node], CapacitorAdmittanceAtOmega(linearEquations[equ][node][component], omega));
-                                break;
-                        }
+                for (var o = 0; o < linearEquations[equ][node].out.length; o++)
+                {
+                    var component = linearEquations[equ][node].out[o];
+                    switch (component.type)
+                    {
+                        //case 'V':
+                            // according to uni code
+                        //    break;
+                        case 'I':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], CurrentSourceAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'R':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], ResistorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'L':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], InductorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'C':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], CapacitorAdmittanceAtOmega(component, omega));
+                            break;
                     }
                 }
-
             }
         }
         
+        //return matrix;
         // solve matrix
         result[step] = {};
         result[step].solution = GaussianElimination(matrix);

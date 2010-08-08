@@ -1,12 +1,19 @@
 Early version of FDNA
 ---------------------
 
-Frequency Domain Nodal Analysis in Javascript. Generate frequency responses to circuits in the browser.
+Frequency Domain Nodal Analysis in Javascript. Generate the sinusoidal steady state of RLC circuits in the browser.
 http://www.stephenierodiaconou.com/fdna
+
+For a detailed discussion on RLC circuits see [Wikipedia/RLC](http://en.wikipedia.org/wiki/RLC_circuit).
+
+[Source code at GitHub](http://github.com/stevegeek/fdna)
 
 Uses Web Workers, your browser must support them!
 
-MORE DESCRIPTION TO FOLLOW. A future release will include a lot more functionality.
+
+Supports two formats of circuit netlist: 
+a simple format described here (a simplified SPICE), and real SPICE format but with limitations (without component optional values and for now with numerical terminals)
+
 
 ----------------------------------------------------------------------------
 The MIT License
