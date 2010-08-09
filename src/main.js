@@ -204,7 +204,7 @@ function DrawHCurrentSource(context, x, y)
     context.beginPath();
     context.arc(x+25,y,10,0,Math.PI*2,false);  
     context.stroke();
-    context.fillText("I", x+24, y+2.5);
+    //context.fillText("I", x+24, y+2.5);
 }
 
 function DrawVCurrentSource(context, x, y)
@@ -259,26 +259,58 @@ function drawCircuit()
     
     
     context.strokeStyle = "#000";
-    DrawHResistor(context, 10,20);
-    DrawVResistor(context, 75,20);
-    DrawHCapacitor(context, 130,20);
-    DrawVCapacitor(context, 190,20);
-    DrawHInductor(context, 250,20);
-    DrawVInductor(context, 310  ,20);
+    DrawHResistor(context, 10,40);
+    //DrawVResistor(context, 75,20);
+    DrawHCapacitor(context, 130,40);
+    //DrawVCapacitor(context, 190,20);
+    DrawHInductor(context, 250,40);
+    //DrawVInductor(context, 310  ,20);
     
-    DrawHVoltageSource(context, 10,80);
-    DrawVVoltageSource(context, 75,80);
-    DrawHCurrentSource(context, 130,80);
-    DrawVCurrentSource(context, 190,80);
+    //DrawHVoltageSource(context, 10,100);
+    //DrawVVoltageSource(context, 75,100);
+    DrawHCurrentSource(context, 130,100);
+    //DrawVCurrentSource(context, 190,100);
     //DrawHProbe(context, 250,80);
-    DrawVProbe(context, 310  ,80);
+    DrawVProbe(context, 310  ,100);
+    
+    var ir = new Element('img', { 'src':'imgs/r1.png'});
+    context.drawImage(ir, 0,0)
+    var il = new Element('img', { 'src':'imgs/l1.png'});
+    context.drawImage(il, 50,0)
+    var ic = new Element('img', { 'src':'imgs/c1.png'});
+    context.drawImage(ic, 100,0)
+    var is = new Element('img', { 'src':'imgs/s1.png'});
+    context.drawImage(is, 150,0)
+    var ip = new Element('img', { 'src':'imgs/p1.png'});
+    context.drawImage(ip, 200,0)
+}
+
+
+function drawCircuitEditor()
+{
+    var i =0,
+        j = 0,
+        w = 10,
+        h = 5,
+        cw = 50,
+        ch = 50,
+        elements = [];
+        
+    for (; i < w; i++)
+    {
+        for (; j < h; j++)
+        {
+            var c = new Element('canvas', { 'width':cw, 'height':ch, 'class': 'gridel', id: ('grid'+i+''+j) }),
+                context = c.getContext("2d");
+        }
+    }
     
 }
 
 function checkSyntax()
 {
     // FIXME: CHECK FORMAT TYPE
-    var result = HighlightAndSyntaxCheckSimpleSource(document.circuiteditor.circuit.value),
+    var result = HighlightAndSyntaxCheckSimpleSource(document.cEd.cir.value),
         errorInfo = "";
     
     if (result.errors.length)
@@ -381,92 +413,66 @@ function drawGraphs(data)
     }
 }
 
-function analyseCircuit()
+function aC()
 {
     if (checkSyntax())
     {
-        switch (document.circuiteditor.format.options[document.circuiteditor.format.selectedIndex].value)
+        $('status').innerHTML = "Analysing...";
+        var analysisworker = new Worker('src/AnalyseCircuit.js');
+        analysisworker.postMessage(document.cEd.cir.value);
+        analysisworker.addEventListener('message', function (event) 
         {
-            case 'simple':
-                //$('status').innerHTML = "Parsing...";
-                //var worker = new Worker('src/ParseSimpleFormat.js');
-                //worker.postMessage(document.circuiteditor.circuit.value);
-                //worker.addEventListener('message', function (event) 
-                //{
-                    //var result = event.data;
-                    //console.log(result);
-                    
-                    //$('status').innerHTML = "Analysing... (" + result.circuit.simulationinfo.startFrequency + "Hz to " + result.circuit.simulationinfo.endFrequency + "Hz in " + result.circuit.simulationinfo.steps + " steps)";
-                    $('status').innerHTML = "Analysing...";
-                    var analysisworker = new Worker('src/AnalyseCircuit.js');
-                    //analysisworker.postMessage(result.circuit);
-                    analysisworker.postMessage(document.circuiteditor.circuit.value);
-                    analysisworker.addEventListener('message', function (event) 
+            //console.log(event.data)
+            var analysed = event.data;
+            if (analysed.error !== undefined)
+                $('status').innerHTML = "Error: " + analysed.error;
+            else
+            {
+                $('status').innerHTML = "Graphing...";
+                //console.log(analysed);
+                drawGraphs(analysed);
+                $('status').innerHTML = "Done.";
+                /*
+                analysed = analysed.result;
+            
+                // Make a graph object with canvas id and width
+                var g = new Bluff.Line('graphcanvas', 800);
+                g.tooltips = true;
+                g.dot_radius = '1';
+                g.legend_font_size = g.marker_font_size = '10';
+                g.title_font_size = '15';
+
+                // Set theme and options
+                g.theme_greyscale();
+                g.title = 'Steady State Voltage vs. Frequency';
+
+                var sol = new Array(analysed[0].solution.length);
+                var xaxis = {};
+                var offsetxaxislabels = analysed.length / 10;
+                for (var i =0; i < analysed.length; i++)
+                {
+                    for (var j =0; j < analysed[i].solution.length; j++)
                     {
-                        console.log(event.data)
-                        var analysed = event.data;
-                        if (analysed.error !== undefined)
-                            $('status').innerHTML = "Error: " + analysed.error;
-                        else
-                        {
-                            $('status').innerHTML = "Graphing...";
-                            //console.log(analysed);
-                        
-                            drawGraphs(analysed);
-                            /*
-                            analysed = analysed.result;
-                        
-                            // Make a graph object with canvas id and width
-                            var g = new Bluff.Line('graphcanvas', 800);
-                            g.tooltips = true;
-                            g.dot_radius = '1';
-                            g.legend_font_size = g.marker_font_size = '10';
-                            g.title_font_size = '15';
+                        if (!sol[j])
+                            sol[j] = [];
+                        var z = analysed[i].solution[j];
+                        sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
+                        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0); 
+                    }
+                    if ((i % offsetxaxislabels)==0)
+                        xaxis[i] = "" + roundNumber(analysed[i].frequency,3);
+                }
+                for (var i =0; i < sol.length; i++)
+                    g.data('node '+ (i+1) , sol[i]);
 
-                            // Set theme and options
-                            g.theme_greyscale();
-                            g.title = 'Steady State Voltage vs. Frequency';
+                g.labels = xaxis;
+                g.x_axis_label = 'Frequency (Hz)';
 
-                            var sol = new Array(analysed[0].solution.length);
-                            var xaxis = {};
-                            var offsetxaxislabels = analysed.length / 10;
-                            for (var i =0; i < analysed.length; i++)
-                            {
-                                for (var j =0; j < analysed[i].solution.length; j++)
-                                {
-                                    if (!sol[j])
-                                        sol[j] = [];
-                                    var z = analysed[i].solution[j];
-                                    sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
-                                    //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0); 
-                                }
-                                if ((i % offsetxaxislabels)==0)
-                                    xaxis[i] = "" + roundNumber(analysed[i].frequency,3);
-                            }
-                            for (var i =0; i < sol.length; i++)
-                                g.data('node '+ (i+1) , sol[i]);
-
-                            g.labels = xaxis;
-                            g.x_axis_label = 'Frequency (Hz)';
-
-                            // Render the graph
-                            g.draw();
-                            */
-                            
-                            
-                            
-                            
-                            
-                            $('status').innerHTML = "Done.";
-                        }
-                    });
-                    
-                //});
-                break;
-            case 'spice':
-                //result = FDNA.ParseSPICEFormatCircuitFromString(document.circuiteditor.circuit.value);
-                break;
-        }
+                // Render the graph
+                g.draw();
+                */
+            }
+        });
         
         return true;
     }
@@ -474,47 +480,41 @@ function analyseCircuit()
         return false;
 }
 
-function loadExample()
+function lEx(ex) //loadExample
 {
-    switch (document.circuiteditor.examplecircuit.options[document.circuiteditor.examplecircuit.selectedIndex].value)
+    var d = document.cEd.cir;
+    switch (ex)
     {
-        case 'example1':
-            document.circuiteditor.circuit.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
-            document.circuiteditor.format.options[0].selected = true;
+        case 0:
+            d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
+            //document.cEd.format.options[0].selected = true;
             break;
-        case 'example2':
-            document.circuiteditor.circuit.value = "# More complex example. Takes some time.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
-            document.circuiteditor.format.options[0].selected = true;
+        case 1:
+            d.value = "# More complex example. Takes some time.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
+            //document.cEd.format.options[0].selected = true;
             break;
-        case 'example3':
+        case 2:
             //document.circuiteditor.circuit.value = "R 1 2 1\nL 2 3 1\nC 3 0 1\nV 1 0 1 0.0\nF 50 0.0001 1.1\nP 2\nE";
             
-            document.circuiteditor.circuit.value = "I 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
-            document.circuiteditor.format.options[0].selected = true;
+            d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
+            //document.cEd.format.options[0].selected = true;
             break;
-        case 'testspice':
-            document.circuiteditor.circuit.value = "La 1 2 5.00E-03\nRb 2 3 500\nCc 3 0 4.70E-09\nIx 1 0 AC 1.0 0.0\n.AC LIN 50 30E+03 40E+03\n.PROBE 2\n.END\n";
-            document.circuiteditor.format.options[1].selected = true;
-            break;
+        //case 'testspice':
+        //    document.cEd.circuit.value = "La 1 2 5.00E-03\nRb 2 3 500\nCc 3 0 4.70E-09\nIx 1 0 AC 1.0 0.0\n.AC LIN 50 30E+03 40E+03\n.PROBE 2\n.END\n";
+            //document.cEd.format.options[1].selected = true;
+        //    break;
     }
 }
 
 window.onload = function () 
-{/*
-<iframe id="richeditor" style="width:500px; height:170px;"></iframe>
-    $('richeditor').contentWindow.document.designMode="on";
-    $('richeditor').contentWindow.document.open();
-    $('richeditor').contentWindow.document.write('<head><style type="text/css">body{ font-family:arial; font-size:13px; }</style> </head>');
-    $('richeditor').contentWindow.document.close();
-    
-    .document.execCommand("ForeColor","","red");
-*/
-    loadExample();
+{
+    lEx(0);
     checkSyntax();
     drawCircuit();
     
-    setInterval('checkSyntax()', 200);  // FIXME: implement a simple check if changed
+    drawCircuitEditor();
     
+    setInterval('checkSyntax()', 200);  // FIXME: implement a simple check if changed
 }
 
 
