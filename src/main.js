@@ -27,6 +27,13 @@
     THE SOFTWARE.
 */
 
+
+
+
+/// FIXME: optims, make a global for document.cEd.cir, i, j 'var' everywhere
+
+
+
 function HighlightAndSyntaxCheckSimpleSource(source)
 {    
     // FIXME: can we have values use (p,n,u,m,K,M,G,T)
@@ -69,6 +76,520 @@ function HighlightAndSyntaxCheckSimpleSource(source)
     return {errors: errors, source: highlightedSource + '</p>'};
 }
 
+// t r b and l , if -2 then no connection there, if -1 connection exists but isnt assigned a node value, if other = node value for connection
+cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 }),
+        new Element('img', { e:'lh', src:'imgs/l1.png', t:-2,r:-1,b:-2,l:-1 }),
+        new Element('img', { e:'ch', src:'imgs/c1.png', t:-2,r:-1,b:-2,l:-1 }),
+        new Element('img', { e:'sh', src:'imgs/s1.png', t:-2,r:-1,b:-2,l:-1 }),
+        
+        new Element('img', { e:'rv', src:'imgs/r1.png', 'class':'rot', t:-1,r:-2,b:-1,l:-2}),
+        new Element('img', { e:'lv', src:'imgs/l1.png', 'class':'rot', t:-1,r:-2,b:-1,l:-2}),
+        new Element('img', { e:'cv', src:'imgs/c1.png', 'class':'rot', t:-1,r:-2,b:-1,l:-2}),
+        new Element('img', { e:'sv', src:'imgs/s1.png', 'class':'rot', t:-1,r:-2,b:-1,l:-2}),
+        
+        new Element('img', { e:'pt', src:'imgs/p1.png', t:-1,r:-2,b:-2,l:-2 }),
+        new Element('img', { e:'gt', src:'imgs/g1.png', t:0,r:-2,b:-2,l:-2 }), // grnd is node 0
+        new Element('img', { e:'h', src:'imgs/h1.png', t:-2,r:-1,b:-2,l:-1 }),
+        new Element('img', { e:'kbr', src:'imgs/k1.png', t:-2,r:-1,b:-1,l:-2 }),
+        new Element('img', { e:'ktl', src:'imgs/k1.png', 'class':'f', t:-1,r:-2,b:-2,l:-1 }),
+        new Element('img', { e:'tr', src:'imgs/t1.png', t:-1,r:-1,b:-1,l:-2}),
+        new Element('img', { e:'tl', src:'imgs/t1.png', 'class':'f', t:-1,r:-2,b:-1,l:-1}),
+        
+        new Element('img', { e:'pl', src:'imgs/p1.png', 'class':'rot', t:-2,r:-2,b:-2,l:-1}),
+        new Element('img', { e:'gl', src:'imgs/g1.png', 'class':'rot', t:-2,r:-2,b:-2,l:0}),
+        new Element('img', { e:'v', src:'imgs/h1.png', 'class':'rot', t:-1,r:-2,b:-1,l:-2}),
+        new Element('img', { e:'ktr', src:'imgs/k1.png', 'class':'rot', t:-1,r:-1,b:-2,l:-2}),
+        new Element('img', { e:'kbl', src:'imgs/k1.png', 'class':'frot', t:-2,r:-2,b:-1,l:-1}),
+        new Element('img', { e:'tt', src:'imgs/t1.png', 'class':'rot', t:-1,r:-1,b:-2,l:-1}),
+        new Element('img', { e:'tb', src:'imgs/t1.png', 'class':'frot', t:-2,r:-1,b:-1,l:-1}),
+        new Element('img', { e:'x', src:'imgs/x1.png', 'class':'rot', t:-1,r:-1,b:-1,l:-1})
+        ];
+
+// FIXME: '' are not needed for prop names
+griddiv = new Element('div', { 
+        'class': 'gridel',
+        'draggable':'true',
+        'ondragstart':"drag(this, event)",
+        'ondragenter':"return false",
+        'ondragover':"return false", 
+        'ondrop':"drop(this, event)"
+    });
+
+function drag(target, e) 
+{
+    e.dataTransfer.setData('text/plain', target.id);
+}
+
+fromToolbox = /^tb(\d+)/;
+
+function drop(target, e) 
+{
+    var id = e.dataTransfer.getData('text/plain');
+    console.log(target.id + " <- " + id)
+
+    //if from tbx create a clone at target and add to components
+    // if contains a child then stop operation
+    // if an obj already on grid simply move it
+
+    
+    if (!target.firstChild)
+    {
+        if (id.match(fromToolbox))
+        {
+            console.log('add')
+            var id = parseInt(RegExp.$1),
+                child = cim[id].clone(),
+                n = child.getAttribute('e'),
+                v = 0;
+            if (id < 8 )
+                n += '_' + prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", "").replace(',','_').replace(' ','')
+            child.setAttribute('id', n);
+            target.appendChild(child);
+        }
+        else
+        {
+            console.log('move')
+            target.appendChild($(id).firstChild.remove());
+        }
+    } else if (target.id == 'del')
+    {
+        $(id).firstChild.remove();
+    }
+    
+    e.preventDefault();
+} 
+
+function drawCircuitEditor()
+{
+    var i =0,
+        j = 0,
+        elements = [];
+        
+    // create toolbox    
+    for (i = 0; i < cim.length; i++)
+    {
+        var a = griddiv.clone();
+        a.setAttribute('id',"tb"+i);
+        a.style.paddingRight = '2px';
+        a.appendChild(cim[i].clone());
+        $('tbx').appendChild(a);
+    }
+
+    for (; j < 10; j++)
+    {
+        for (i = 0; i < 10; i++)
+        {
+            var a = griddiv.clone();
+            a.setAttribute('id',"g"+i+''+j);
+            $('diagram').appendChild(a);
+        }
+        $('diagram').appendChild(new Element('br').addClassName('row'));
+    }
+}
+
+function propagateWireNodes()
+{
+    var i = 0,
+        j = 0,
+        propagate = true,cnt = 0;
+        
+    while (propagate)
+    {
+        cnt++;
+        console.log('loop ' + cnt)
+        if(cnt > 10)
+            break;
+        propagate = false;
+        for (j = 0; j < 10; j++)
+        {
+            for (i = 0; i < 10; i++)
+            {
+                var g = $("g"+i+''+j);
+                    c = g.firstChild,
+                    curnode = -1;
+                
+                if(!c || !c.getAttribute('e').match(/^[kvhtx]/)) continue;
+                // t r b l
+                console.log('found wire' + c.getAttribute('e'))
+                
+                var offsets = ['t','r','b','l', 'b','l','t','r', 0, 1, 0, -1, -1, 0, 1, 0],
+                    prev = false;
+                
+                for (var k = 0; k < 4; k++)
+                {
+                    var n  = c.getAttribute(offsets[k]);
+                    if (n == -2)
+                        continue;
+                    
+                    if (n == -1)
+                    {
+                        console.log(offsets[k] + ' we are -1 so prop still')
+                        curnode = $("g"+(i+offsets[k+8])+''+(j+offsets[k+12])).firstChild.getAttribute(offsets[k+4]);
+                        console.log('neighbour node '+curnode)
+                        //if (curnode > -1)
+                        //    c.setAttribute(offsets[k], curnode);
+                        if (prev)
+                            propagate = true;
+                            
+                        if (curnode > -1)
+                        {
+                            console.log('assign all wire pins')
+                            for (var m = 0; m < 4; m++)
+                            {
+                                if (c.getAttribute(offsets[m]) > -2)
+                                {
+                                    console.log('assign '+curnode+' to '+offsets[m])
+                                    c.setAttribute(offsets[m], curnode);
+                                }
+                            }
+                        }
+                    }
+                    else 
+                        prev = true; // there is at least one pin connected
+                    
+                }                
+            }
+        }
+    }
+ 
+}
+
+function cTx()
+{
+    var i = 0,
+        j = 0,
+        found = 0,
+        nodenum = 1;
+          
+    for (; j < 10; j++)
+    {
+        for (i = 0; i < 10; i++)
+        {
+            var c = $("g"+i+''+j).firstChild;
+            if (c && c.id.charAt(0) == 'g')
+            {
+                if (c.id.charAt(1) == 't')
+                    c.setAttribute('t', 0);
+                else
+                    c.setAttribute('l', 0);
+                found = 1;
+            }
+        }
+    }
+    if (!found)
+    {
+        $('status').innerHTML = "Your circuit does not contain a ground (reference node).";
+        return;
+    }
+    
+    propagateWireNodes();
+    //return
+    // check connections
+    for (j = 0; j < 10; j++)
+    {
+        for (i = 0; i < 10; i++)
+        {
+            var g = $("g"+i+''+j);
+                c = g.firstChild,
+                curnode = -1;
+
+            if(!c || !c.getAttribute('e').match(/^[rlcsp]/)) continue;
+            // t r b l
+            var offsets = ['t','r','b','l', 'b','l','t','r', 0, 1, 0, -1, -1, 0, 1, 0];
+            for (var k = 0; k < 4; k++)
+            {
+                if (c && c.getAttribute(offsets[k]) > -2) 
+                {
+                    try {
+                        curnode = $("g"+(i+offsets[k+8])+''+(j+offsets[k+12])).firstChild.getAttribute(offsets[k+4]);
+                        if (curnode < 0)
+                            curnode = nodenum++;  // assign new node number if there isnt one
+                        
+                        g.firstChild.setAttribute(offsets[k], curnode);
+                        
+                        propagateWireNodes();
+                    }
+                    catch (e)
+                    {
+                        alert('The component (if there is one) at grid cell ' +i +','+j + ' does not have a '+offsets[k+4]+' connection')
+                        return
+                    }
+                }
+            }
+        }
+    }
+        
+    // generate source
+    var src = "";
+    for (j = 0; j < 10; j++)
+    {
+        for (i = 0; i < 10; i++)
+        {
+            var g = $("g"+i+''+j),
+                c = g.firstChild,
+                value = "";
+                
+            if (c) { 
+                c.id.match(/^[^_]+\_([^_]+)\_?(.)*/);
+                value = RegExp.$1,
+                value2= RegExp.$2;
+            }
+            
+            if (c && c.id.match(/^([rlc])([vh])/))
+            {
+                
+                var type = RegExp.$1,
+                    pins;
+                if (RegExp.$2 == 'v')
+                    pins = c.getAttribute('t') + ' ' + c.getAttribute('b');
+                else
+                    pins = c.getAttribute('l') + ' ' + c.getAttribute('r');
+            
+                src += type.toUpperCase() + ' ' + pins + ' ' + value + "\n";
+            
+            }
+            else if (c && c.id.match(/^s([vh])/))
+            {
+                if (RegExp.$1 == 'v')
+                    pins = c.getAttribute('t') + ' ' + c.getAttribute('b');
+                else
+                    pins = c.getAttribute('l') + ' ' + c.getAttribute('r');
+                
+                src += 'I ' + pins + ' ' + value + ' ' + value2 + "\n";
+            }
+            else if (c && c.id.match(/^p([tl])/))
+            {
+                if (RegExp.$1 == 't')
+                    pins = c.getAttribute('t');
+                else
+                    pins = c.getAttribute('l');
+                
+                src += 'P ' + pins + "\n";
+            }
+        }
+    }
+    
+    
+    // Add F and E
+    document.cEd.cir.value = src + "F " + $('ft').value + " " + $('fs').value + " " + $('fe').value +"\nE";
+        
+    aC(); // check syntax and analyse
+}
+
+function checkSyntax()
+{
+    // FIXME: CHECK FORMAT TYPE
+    var result = HighlightAndSyntaxCheckSimpleSource(document.cEd.cir.value),
+        errorInfo = "",
+        errs = result.errors;
+    
+    if (errs.length)
+    {
+        var lines = "";
+        for (var i = 0; i < errs.length; i++)
+            lines = errs[i].line + ",";
+        errorInfo = "<p>Errors on lines: "+lines+"</p>";
+    }
+    else
+        errorInfo = "<p>No Errors</p>";
+        
+    $('sourceCode').innerHTML = errorInfo + result.source;
+    
+    return (!errs.length) ? true : false;
+}
+
+//http://forums.devarticles.com/javascript-development-22/javascript-to-round-to-2-decimal-places-36190.html
+function roundNumber(num, dec) 
+{
+    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+    return result;
+}
+
+function drawGraphs(data)
+{
+    // remove previous graphs
+    var graphs = $('plots').select('canvas.graph'),
+        i = 0;
+        
+    for (; i < graphs.length; i++)
+        graphs[i].remove();
+
+    for (i = 0; i < data.circuit.probes.length; i++)
+    {
+        var w = 500,
+            h = 300,
+            node = data.circuit.probes[i].pin - 1,
+            c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
+            context = c.getContext("2d");
+
+        // Mag
+        $('plots').appendChild(c);
+        context.beginPath();
+        context.fillText("Node " + (node+1), 10.5, 10.5);
+        context.moveTo(30.5,30.5);
+        context.lineTo(30.5,h-20.5);
+        context.moveTo(20.5,h-30.5);
+        context.lineTo(w-30.5,h-30.5);
+        context.strokeStyle = "#000";
+        context.stroke();
+        
+        var stepanalysis = data.result,
+            points = [],
+            datalen = stepanalysis.length,
+            graphoffset = 65,  // this is the distance difference from the canvas w/h to scale the graph to
+            //datalen = solution.length,
+            datastep = (datalen > (w - graphoffset)) ? (datalen / (w - graphoffset)) : 1,
+            axisstep = (datalen < (w - graphoffset)) ? ((w - graphoffset) / datalen) : 1, //(w - 60) / datalen,
+            p = 0;
+            
+        // normalise y axis
+        //sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
+        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0);
+
+        console.log(datalen)
+        console.log(datastep)
+        console.log(axisstep)
+
+        var maxval = -10000.0, minval = 10000.0;
+        for (p = 0; p < datalen; p++)
+        {
+            var z = stepanalysis[p].solution[node];
+            points[p] = Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
+            if (points[p] > maxval)
+                maxval = points[p];
+            if (points[p] < minval)
+                minval = points[p];
+        }
+        //console.log(points)
+        //console.log(minval)
+        //console.log(maxval)
+        //return
+        for (p = 0; p < datalen; p++)
+        {
+            points[p] = (points[p] - minval) / (maxval - minval);
+            //points[p] /= maxval;
+        }
+        //console.log(points)
+        // plot mag
+        context.beginPath();
+        context.moveTo(30.5,h-30.5);
+        var s = 0;
+        for (p = 0; p < datalen / datastep; p+=datastep)
+        {    
+            //console.log(points[p])
+            context.lineTo(30.5+(axisstep*s), (h-30.5) - (points[Math.round(p)]*(h-graphoffset)));   
+            s++;
+        }
+        context.stroke();
+    }
+}
+
+function aC()
+{
+    if (checkSyntax())
+    {
+        $('status').innerHTML = "Analysing...";
+        var analysisworker = new Worker('src/AnalyseCircuit.js');
+        analysisworker.postMessage(document.cEd.cir.value);
+        analysisworker.addEventListener('message', function (event) 
+        {
+            //console.log(event.data)
+            var analysed = event.data;
+            if (analysed.error !== undefined)
+                $('status').innerHTML = "Error: " + analysed.error;
+            else
+            {
+                $('status').innerHTML = "Graphing...";
+                //console.log(analysed);
+                drawGraphs(analysed);
+                $('status').innerHTML = "Done.";
+                /*
+                analysed = analysed.result;
+            
+                // Make a graph object with canvas id and width
+                var g = new Bluff.Line('graphcanvas', 800);
+                g.tooltips = true;
+                g.dot_radius = '1';
+                g.legend_font_size = g.marker_font_size = '10';
+                g.title_font_size = '15';
+
+                // Set theme and options
+                g.theme_greyscale();
+                g.title = 'Steady State Voltage vs. Frequency';
+
+                var sol = new Array(analysed[0].solution.length);
+                var xaxis = {};
+                var offsetxaxislabels = analysed.length / 10;
+                for (var i =0; i < analysed.length; i++)
+                {
+                    for (var j =0; j < analysed[i].solution.length; j++)
+                    {
+                        if (!sol[j])
+                            sol[j] = [];
+                        var z = analysed[i].solution[j];
+                        sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
+                        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0); 
+                    }
+                    if ((i % offsetxaxislabels)==0)
+                        xaxis[i] = "" + roundNumber(analysed[i].frequency,3);
+                }
+                for (var i =0; i < sol.length; i++)
+                    g.data('node '+ (i+1) , sol[i]);
+
+                g.labels = xaxis;
+                g.x_axis_label = 'Frequency (Hz)';
+
+                // Render the graph
+                g.draw();
+                */
+            }
+        });
+        
+        return true;
+    }
+    else
+        return false;
+}
+
+function lEx(ex) //loadExample
+{
+    var d = document.cEd.cir;
+    switch (ex)
+    {
+        case 0:
+            d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
+            //document.cEd.format.options[0].selected = true;
+            break;
+        case 1:
+            d.value = "# More complex example. Takes some time.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
+            //document.cEd.format.options[0].selected = true;
+            break;
+        case 2:
+            //document.circuiteditor.circuit.value = "R 1 2 1\nL 2 3 1\nC 3 0 1\nV 1 0 1 0.0\nF 50 0.0001 1.1\nP 2\nE";
+            
+            d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
+            //document.cEd.format.options[0].selected = true;
+            break;
+        //case 'testspice':
+        //    document.cEd.circuit.value = "La 1 2 5.00E-03\nRb 2 3 500\nCc 3 0 4.70E-09\nIx 1 0 AC 1.0 0.0\n.AC LIN 50 30E+03 40E+03\n.PROBE 2\n.END\n";
+            //document.cEd.format.options[1].selected = true;
+        //    break;
+    }
+}
+
+onload = function () 
+{
+    lEx(0);
+    checkSyntax();
+    //drawCircuit();
+    
+    drawCircuitEditor();
+    
+    setInterval('checkSyntax()', 200);  // FIXME: implement a simple check if changed
+}
+
+
+/*
 function HighlightAndSyntaxCheckSPICESource(source)
 {    
     return {};
@@ -284,239 +805,6 @@ function drawCircuit()
     var ip = new Element('img', { 'src':'imgs/p1.png'});
     context.drawImage(ip, 200,0)
 }
-
-
-function drawCircuitEditor()
-{
-    var i =0,
-        j = 0,
-        w = 10,
-        h = 5,
-        cw = 50,
-        ch = 50,
-        elements = [];
-        
-    for (; i < w; i++)
-    {
-        for (; j < h; j++)
-        {
-            var c = new Element('canvas', { 'width':cw, 'height':ch, 'class': 'gridel', id: ('grid'+i+''+j) }),
-                context = c.getContext("2d");
-        }
-    }
-    
-}
-
-function checkSyntax()
-{
-    // FIXME: CHECK FORMAT TYPE
-    var result = HighlightAndSyntaxCheckSimpleSource(document.cEd.cir.value),
-        errorInfo = "";
-    
-    if (result.errors.length)
-    {
-        var lines = "";
-        for (var i = 0; i < result.errors.length; i++)
-            lines = result.errors[i].line + ",";
-        errorInfo = "<p>Errors on lines: "+lines+"</p>";
-    }
-    else
-        errorInfo = "<p>No Errors</p>";
-        
-    document.getElementById('sourceCode').innerHTML = errorInfo + result.source;
-    
-    return (!result.errors.length) ? true : false;
-}
-
-//http://forums.devarticles.com/javascript-development-22/javascript-to-round-to-2-decimal-places-36190.html
-function roundNumber(num, dec) {
-    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
-    return result;
-}
-
-function drawGraphs(data)
-{
-    // remove previous graphs
-    var graphs = $('plots').select('canvas.graph'),
-        i = 0;
-        
-    for (; i < graphs.length; i++)
-        graphs[i].remove();
-
-    for (i = 0; i < data.circuit.probes.length; i++)
-    {
-        var w = 500,
-            h = 300,
-            node = data.circuit.probes[i].pin - 1,
-            c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
-            context = c.getContext("2d");
-
-        // Mag
-        $('plots').appendChild(c);
-        context.beginPath();
-        context.fillText("Node " + (node+1), 10.5, 10.5);
-        context.moveTo(30.5,30.5);
-        context.lineTo(30.5,h-20.5);
-        context.moveTo(20.5,h-30.5);
-        context.lineTo(w-30.5,h-30.5);
-        context.strokeStyle = "#000";
-        context.stroke();
-        
-        var stepanalysis = data.result,
-            points = [],
-            datalen = stepanalysis.length,
-            graphoffset = 65,  // this is the distance difference from the canvas w/h to scale the graph to
-            //datalen = solution.length,
-            datastep = (datalen > (w - graphoffset)) ? (datalen / (w - graphoffset)) : 1,
-            axisstep = (datalen < (w - graphoffset)) ? ((w - graphoffset) / datalen) : 1, //(w - 60) / datalen,
-            p = 0;
-            
-        // normalise y axis
-        //sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
-        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0);
-
-        console.log(datalen)
-        console.log(datastep)
-        console.log(axisstep)
-
-        var maxval = -10000.0, minval = 10000.0;
-        for (p = 0; p < datalen; p++)
-        {
-            var z = stepanalysis[p].solution[node];
-            points[p] = Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
-            if (points[p] > maxval)
-                maxval = points[p];
-            if (points[p] < minval)
-                minval = points[p];
-        }
-        //console.log(points)
-        //console.log(minval)
-        //console.log(maxval)
-        //return
-        for (p = 0; p < datalen; p++)
-        {
-            points[p] = (points[p] - minval) / (maxval - minval);
-            //points[p] /= maxval;
-        }
-        //console.log(points)
-        // plot mag
-        context.beginPath();
-        context.moveTo(30.5,h-30.5);
-        var s = 0;
-        for (p = 0; p < datalen / datastep; p+=datastep)
-        {    
-            //console.log(points[p])
-            context.lineTo(30.5+(axisstep*s), (h-30.5) - (points[Math.round(p)]*(h-graphoffset)));   
-            s++;
-        }
-        context.stroke();
-    }
-}
-
-function aC()
-{
-    if (checkSyntax())
-    {
-        $('status').innerHTML = "Analysing...";
-        var analysisworker = new Worker('src/AnalyseCircuit.js');
-        analysisworker.postMessage(document.cEd.cir.value);
-        analysisworker.addEventListener('message', function (event) 
-        {
-            //console.log(event.data)
-            var analysed = event.data;
-            if (analysed.error !== undefined)
-                $('status').innerHTML = "Error: " + analysed.error;
-            else
-            {
-                $('status').innerHTML = "Graphing...";
-                //console.log(analysed);
-                drawGraphs(analysed);
-                $('status').innerHTML = "Done.";
-                /*
-                analysed = analysed.result;
-            
-                // Make a graph object with canvas id and width
-                var g = new Bluff.Line('graphcanvas', 800);
-                g.tooltips = true;
-                g.dot_radius = '1';
-                g.legend_font_size = g.marker_font_size = '10';
-                g.title_font_size = '15';
-
-                // Set theme and options
-                g.theme_greyscale();
-                g.title = 'Steady State Voltage vs. Frequency';
-
-                var sol = new Array(analysed[0].solution.length);
-                var xaxis = {};
-                var offsetxaxislabels = analysed.length / 10;
-                for (var i =0; i < analysed.length; i++)
-                {
-                    for (var j =0; j < analysed[i].solution.length; j++)
-                    {
-                        if (!sol[j])
-                            sol[j] = [];
-                        var z = analysed[i].solution[j];
-                        sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
-                        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0); 
-                    }
-                    if ((i % offsetxaxislabels)==0)
-                        xaxis[i] = "" + roundNumber(analysed[i].frequency,3);
-                }
-                for (var i =0; i < sol.length; i++)
-                    g.data('node '+ (i+1) , sol[i]);
-
-                g.labels = xaxis;
-                g.x_axis_label = 'Frequency (Hz)';
-
-                // Render the graph
-                g.draw();
-                */
-            }
-        });
-        
-        return true;
-    }
-    else
-        return false;
-}
-
-function lEx(ex) //loadExample
-{
-    var d = document.cEd.cir;
-    switch (ex)
-    {
-        case 0:
-            d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
-            //document.cEd.format.options[0].selected = true;
-            break;
-        case 1:
-            d.value = "# More complex example. Takes some time.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
-            //document.cEd.format.options[0].selected = true;
-            break;
-        case 2:
-            //document.circuiteditor.circuit.value = "R 1 2 1\nL 2 3 1\nC 3 0 1\nV 1 0 1 0.0\nF 50 0.0001 1.1\nP 2\nE";
-            
-            d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
-            //document.cEd.format.options[0].selected = true;
-            break;
-        //case 'testspice':
-        //    document.cEd.circuit.value = "La 1 2 5.00E-03\nRb 2 3 500\nCc 3 0 4.70E-09\nIx 1 0 AC 1.0 0.0\n.AC LIN 50 30E+03 40E+03\n.PROBE 2\n.END\n";
-            //document.cEd.format.options[1].selected = true;
-        //    break;
-    }
-}
-
-window.onload = function () 
-{
-    lEx(0);
-    checkSyntax();
-    drawCircuit();
-    
-    drawCircuitEditor();
-    
-    setInterval('checkSyntax()', 200);  // FIXME: implement a simple check if changed
-}
-
-
+*/
 
 

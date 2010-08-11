@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html><head><title>JS FDNA</title><meta charset="utf-8">
-    <meta name="description" content="Frequency domain analysis of electronic circuits, with source syntax checking, automatic circuit diagram generation, computation on Web Workers and graphing of results.">
+    <meta name="description" content="
+    
+    
+    Frequency domain analysis of electronic circuits, with source syntax checking, automatic circuit diagram generation, computation on Web Workers and graphing of results.
+    
+    UPDATE THIS !!!!!!!!!
+    ">
 
   <!--<script type="text/javascript" src="lib/bluff/js-class.js"></script>
   <script type="text/javascript" src="lib/bluff/bluff-min.js"></script>-->
@@ -9,24 +15,12 @@
   <script type="text/javascript" src="lib/prototype.js"></script>
   <script type="text/javascript" src="src/main.js"></script>
   <style type="text/css">
-  #editor
-  {
-      /*float:left;*/
-  }
-
   #sourceCode
   {
-      /*float:left;*/
       font-family:"courier";
       background-color:beige;
       padding:10px;
       width:400px;
-  }
-
-  #circuitDiagram
-  {
-      /*float:left;
-      clear: left;*/
   }
 
   .linenum
@@ -59,7 +53,43 @@
 
   .graph 
   {
-      border: 1px solid black;
+  }
+  
+  #diagram
+  {
+      clear:left;
+      width:500;
+      height:500;
+  }
+  .gridel 
+  {
+      border:1px solid #ccc;
+      background-color:#eee;
+      width:50px; height:50px;
+      padding:0;margin:0;
+      float:left;
+  }
+  .row
+  {
+      clear:left;
+  }
+  .f {
+      -webkit-transform: rotate(-180deg);
+      -moz-transform: rotate(-180deg);
+      transform: rotate(-180deg);
+      /*filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=2);*/
+  }
+  .frot {
+      -webkit-transform: rotate(-270deg);
+      -moz-transform: rotate(-270deg);
+      transform: rotate(-270deg);
+      /*filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=1);*/
+  }
+  .rot {
+        -webkit-transform: rotate(-90deg);
+        -moz-transform: rotate(-90deg);
+        transform: rotate(-90deg);
+        /*filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=3);*/
   }
   </style>
 </head>
@@ -70,25 +100,25 @@
     
     <div id="plots"></div> <!-- where the plots go -->
     
-    <div id="diagram"></div> <!-- where the diagram editor is -->
-    
     <a onClick="lEx(0)">Ex. 1</a>|<a onClick="lEx(1)">Ex. 2</a>|<a onClick="lEx(2)">Ex. 3</a><input type="button" value="Analyse..." onClick="return aC()">
-    <form name="cEd">
+    
+    <form name="cEd"> <!-- DO WE NEED A FORM AT ALL??????????????? -->
         <textarea name="cir" rows="15" cols="30"></textarea>
     </form>
     
     <div id="sourceCode"></div> <!-- highlighted code -->
     
+    <div id="tbx"><p id="del" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">DEL</p></div>
+    <br><div id="diagram"></div> <!-- where the diagram editor is -->
+    <input type="text" value="100" id="ft"><input type="text" value="0.001" id="fs"><input type="text" value="100" id="fe">
+    <input type="button" value="Create Description and Simulate..." onClick="return cTx()">
     
-    
+    <!--
     <div id="circuitDiagram">
         <canvas id="diagramcanvas" width="500" height="300"></canvas>
         <canvas id="graphcanvas" width="800" height="600"></canvas>
     </div>
-    
-
-    
-    
+    -->
 </body>
 </html>
 
