@@ -410,7 +410,7 @@ function drawGraphs(data)
     // remove previous graphs
     var graphs = $('plots').select('canvas.graph'),
         i = 0;
-        
+            
     for (; i < graphs.length; i++)
         graphs[i].remove();
 
@@ -421,6 +421,10 @@ function drawGraphs(data)
             node = data.circuit.probes[i].pin - 1,
             c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
             context = c.getContext("2d");
+
+
+        context.lineWidth = 2;
+        context.lineCap = 'round';
 
         // Mag
         $('plots').appendChild(c);
@@ -471,7 +475,9 @@ function drawGraphs(data)
         }
         //console.log(points)
         // plot mag
+        context.lineWidth = 1;
         context.beginPath();
+        context.lineJoin = 'bevel';
         context.moveTo(30.5,h-30.5);
         var s = 0;
         for (p = 0; p < datalen / datastep; p+=datastep)
@@ -503,45 +509,6 @@ function aC()
                 //console.log(analysed);
                 drawGraphs(analysed);
                 $('status').innerHTML = "Done.";
-                /*
-                analysed = analysed.result;
-            
-                // Make a graph object with canvas id and width
-                var g = new Bluff.Line('graphcanvas', 800);
-                g.tooltips = true;
-                g.dot_radius = '1';
-                g.legend_font_size = g.marker_font_size = '10';
-                g.title_font_size = '15';
-
-                // Set theme and options
-                g.theme_greyscale();
-                g.title = 'Steady State Voltage vs. Frequency';
-
-                var sol = new Array(analysed[0].solution.length);
-                var xaxis = {};
-                var offsetxaxislabels = analysed.length / 10;
-                for (var i =0; i < analysed.length; i++)
-                {
-                    for (var j =0; j < analysed[i].solution.length; j++)
-                    {
-                        if (!sol[j])
-                            sol[j] = [];
-                        var z = analysed[i].solution[j];
-                        sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
-                        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0); 
-                    }
-                    if ((i % offsetxaxislabels)==0)
-                        xaxis[i] = "" + roundNumber(analysed[i].frequency,3);
-                }
-                for (var i =0; i < sol.length; i++)
-                    g.data('node '+ (i+1) , sol[i]);
-
-                g.labels = xaxis;
-                g.x_axis_label = 'Frequency (Hz)';
-
-                // Render the graph
-                g.draw();
-                */
             }
         });
         
@@ -551,29 +518,20 @@ function aC()
         return false;
 }
 
-function lEx(ex) //loadExample
+function lEx(ex)
 {
     var d = document.cEd.cir;
     switch (ex)
     {
         case 0:
             d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
-            //document.cEd.format.options[0].selected = true;
             break;
         case 1:
             d.value = "# More complex example. Takes some time.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
-            //document.cEd.format.options[0].selected = true;
             break;
         case 2:
-            //document.circuiteditor.circuit.value = "R 1 2 1\nL 2 3 1\nC 3 0 1\nV 1 0 1 0.0\nF 50 0.0001 1.1\nP 2\nE";
-            
             d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
-            //document.cEd.format.options[0].selected = true;
             break;
-        //case 'testspice':
-        //    document.cEd.circuit.value = "La 1 2 5.00E-03\nRb 2 3 500\nCc 3 0 4.70E-09\nIx 1 0 AC 1.0 0.0\n.AC LIN 50 30E+03 40E+03\n.PROBE 2\n.END\n";
-            //document.cEd.format.options[1].selected = true;
-        //    break;
     }
 }
 

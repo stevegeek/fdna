@@ -30,6 +30,9 @@
 // Optimisations: 
 // note http://jsperf.com/adding-items-array/6  shows a[i] = blah; to be faster than a.push(blah) in webkit
 
+
+// http://www.iteral.com/jscrush/
+
 // Short names
 pF = parseFloat;
 pI = parseInt;
