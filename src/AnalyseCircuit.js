@@ -287,10 +287,10 @@ function ParseSimpleFormatCircuitFromString (source)
         probelocations =    /^\s*P\s+([\d]+)\s*$/i,
         endcommand =        /^\s*E\s*$/i,
         comment =           /^\s*#(.*)$/,
-        errors = new Array();
+        er = new Array();
         lines = source.split("\n"),
         count = lines.length,
-        circuit = {
+        c = {
             simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
             components: new Array(),
             probes: new Array()
@@ -308,13 +308,13 @@ function ParseSimpleFormatCircuitFromString (source)
             switch (RegExp.$1)
             {
                 case 'R': case 'r':
-                    circuit.components.push(ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    c.components.push(ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
                 case 'C': case 'c':
-                    circuit.components.push(CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    c.components.push(CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
                 case 'L': case 'l':
-                    circuit.components.push(InductorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    c.components.push(InductorMake(RegExp.$2, RegExp.$3, RegExp.$4));
                     break;
             }
         }
@@ -323,23 +323,23 @@ function ParseSimpleFormatCircuitFromString (source)
             switch (RegExp.$1)
             {
                 case 'I': case 'i':
-                    //circuit.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
-                    circuit.components.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
+                    //c.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    c.components.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
                     break;
                 case 'V': case 'v':
-                    circuit.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
+                    c.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
                     break;
             }
         }
         else if (lines[i].match(simulationinfo))
         {
-            circuit.simulationinfo.steps = pI(RegExp.$1);
-            circuit.simulationinfo.startFrequency = pF(RegExp.$2);
-            circuit.simulationinfo.endFrequency = pF(RegExp.$3);
+            c.simulationinfo.steps = pI(RegExp.$1);
+            c.simulationinfo.startFrequency = pF(RegExp.$2);
+            c.simulationinfo.endFrequency = pF(RegExp.$3);
         }
         else if (lines[i].match(probelocations))
         {
-            circuit.probes.push(ProbeMake(RegExp.$1));
+            c.probes.push(ProbeMake(RegExp.$1));
         }
         else if (lines[i].match(endcommand))
         {
@@ -352,23 +352,23 @@ function ParseSimpleFormatCircuitFromString (source)
         }
         else
         {
-            errors.push({line: i});
+            er.push({line: i});
         }
     }
 
-    return {errors: errors, circuit: circuit};
+    return {e: er, c: c};
 }
 
 function Analyse (parseResult)
 {
 
-    if (parseResult.errors.length != 0)
+    if (parseResult.e.length != 0)
     {
         return {error:"Circuit failed to parse!"};
     }
 
     var result = [],
-        circuit = parseResult.circuit,
+        circuit = parseResult.c,
         count = circuit.components.length,
         maxNode = 0,
         i = 0;
