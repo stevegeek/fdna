@@ -1,9 +1,9 @@
 /*
     FDNA
-    
+
     Frequency Domain Nodal Analysis in Javascript. Generate frequency responses to circuits in the browser.
     http://www.stephenierodiaconou.com/fdna
-    
+
     The MIT License
 
     Copyright (c) 2010 Stephen Ierodiaconou (http://www.stephenierodiaconou.com)
@@ -27,7 +27,7 @@
     THE SOFTWARE.
 */
 
-// Optimisations: 
+// Optimisations:
 // note http://jsperf.com/adding-items-array/6  shows a[i] = blah; to be faster than a.push(blah) in webkit
 
 
@@ -70,7 +70,7 @@ function ZDivide(z, divisor)
     // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
     // ( ac + jbc - jad + bd) / (cc + dd)
     // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
-    var c = ( (a * divisor.Re)          + (b * divisor.Im) ) / 
+    var c = ( (a * divisor.Re)          + (b * divisor.Im) ) /
               ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
     var d = ( ((b * divisor.Re)         - (a * divisor.Im)) /
               ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );
@@ -101,11 +101,11 @@ function ZSubtract(z, term)
 function CurrentSourceMake(pin1, pin2, magnitude, phase, tolerance, state)
 {
     // current flows opposite to convention of voltage +/-
-    return {type:'I', 
-            state:state, 
-            tolerance:pF(tolerance), 
-            magnitude:pF(magnitude), 
-            phase:pF(phase), 
+    return {type:'I',
+            state:state,
+            tolerance:pF(tolerance),
+            magnitude:pF(magnitude),
+            phase:pF(phase),
             pins: new Array(pI(pin1), pI(pin2)),
             admittance: ZMake(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase))
             //impedance: ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
@@ -119,11 +119,11 @@ function CurrentSourceAdmittanceAtOmega(isrc, omega)
 
 function VoltageSourceMake(pin1, pin2, magnitude, phase, tolerance, state)
 {
-    return {type:'V', 
-            state:state, 
-            tolerance:pF(tolerance), 
-            magnitude:pF(magnitude), 
-            phase:pF(phase), 
+    return {type:'V',
+            state:state,
+            tolerance:pF(tolerance),
+            magnitude:pF(magnitude),
+            phase:pF(phase),
             pins: new Array(pI(pin1), pI(pin2)),
             admittance: ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase))
             };
@@ -149,14 +149,14 @@ function ResistorMake(pin1, pin2, value, tolerance, state)
             // Zr = R
             //impedance : ZMake(value, 0.0),
             admittance : ZMake(1.0 / pF(value), 0.0)
-        };                
+        };
 }
 
 function ResistorAdmittanceAtOmega(res, omega)
 {
     return res.admittance;
 }
-        
+
 function CapacitorMake(pin1, pin2, value, tolerance, state)
 {
     return {type: 'C',
@@ -167,7 +167,7 @@ function CapacitorMake(pin1, pin2, value, tolerance, state)
             // Zc = 1/jwC
             //impedance : this.ZMake(0.0, 1.0 / value),
             admittance : ZMake(0.0, pF(value))
-        };                
+        };
 }
 
 function CapacitorAdmittanceAtOmega(cap, omega)
@@ -187,7 +187,7 @@ function InductorMake(pin1, pin2, value, tolerance, state)
             // Zl = jwL
             //impedance : ZMake(0.0, value),
             admittance : ZMake(0.0, - 1.0 / pF(value))
-        };                
+        };
 }
 
 function InductorAdmittanceAtOmega(ind, omega)
@@ -197,7 +197,7 @@ function InductorAdmittanceAtOmega(ind, omega)
     return a;
 }
 
-// http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html  
+// http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html
 // convert matrix [A] to upper diagonal form
 function eliminate (A)
 {
@@ -285,14 +285,14 @@ function ParseSimpleFormatCircuitFromString (source)
         sources =           /^\s*([IV])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
         simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
         probelocations =    /^\s*P\s+([\d]+)\s*$/i,
-        endcommand =        /^\s*E\s*$/i, 
+        endcommand =        /^\s*E\s*$/i,
         comment =           /^\s*#(.*)$/,
         errors = new Array();
         lines = source.split("\n"),
         count = lines.length,
         circuit = {
             simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
-            components: new Array(), 
+            components: new Array(),
             probes: new Array()
         },
         i = 0;
@@ -301,7 +301,7 @@ function ParseSimpleFormatCircuitFromString (source)
     {
         if (lines[i] == "" || lines[i].match(/^\s*$/))
         {
-            
+
         }
         else if (lines[i].match(components))
         {
@@ -328,7 +328,7 @@ function ParseSimpleFormatCircuitFromString (source)
                     break;
                 case 'V': case 'v':
                     circuit.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
-                    break;   
+                    break;
             }
         }
         else if (lines[i].match(simulationinfo))
@@ -359,8 +359,9 @@ function ParseSimpleFormatCircuitFromString (source)
     return {errors: errors, circuit: circuit};
 }
 
-function Analyse (parseResult) 
+function Analyse (parseResult)
 {
+
     if (parseResult.errors.length != 0)
     {
         return {error:"Circuit failed to parse!"};
@@ -371,7 +372,7 @@ function Analyse (parseResult)
         count = circuit.components.length,
         maxNode = 0,
         i = 0;
-        
+
     // get max nodes
     for (; i < count; i++)
     {
@@ -442,14 +443,14 @@ function Analyse (parseResult)
         fstep =  (circuit.simulationinfo.endFrequency - circuit.simulationinfo.startFrequency) / circuit.simulationinfo.steps,
         step = 0,
         matrix = new Array(linearEquations.length);
-    
+
     for (; step < circuit.simulationinfo.steps; step++)
     {
         var omega = 2 * Math.PI * frequency,
             equ = 0,
             node = 0,
             component = 0;
-        
+
         for (; equ < linearEquations.length; equ++)
         {
             matrix[equ] = new Array(linearEquations[equ].length);
@@ -457,7 +458,7 @@ function Analyse (parseResult)
             {
                 if (!matrix[equ][node])
                     matrix[equ][node] = ZMake(0.0, 0.0);
-                    
+
                 for (var i = 0; i < linearEquations[equ][node].input.length; i++)
                 {
                     var component = linearEquations[equ][node].input[i];
@@ -504,17 +505,22 @@ function Analyse (parseResult)
                 }
             }
         }
-        
+
         //return matrix;
         // solve matrix
         result[step] = {solution: GaussianElimination(matrix),frequency: frequency, omega: omega};
         frequency += fstep;
     }
-    
+
     return {result:result, circuit:circuit};
 };
-
-self.addEventListener('message', function (event) 
+/*
+self.addEventListener('message', function (event)
 {
     this.postMessage(Analyse(ParseSimpleFormatCircuitFromString(event.data)));
 }, false);
+*/
+onmessage = function(event)
+{
+    postMessage(JSON.stringify(Analyse(ParseSimpleFormatCircuitFromString(event.data))));
+}

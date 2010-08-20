@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html><head><title>JS FDNA</title><meta charset="utf-8">
-    <meta name="description" content="
-    
-    
-    Frequency domain analysis of electronic circuits, with source syntax checking, automatic circuit diagram generation, computation on Web Workers and graphing of results.
-    
-    UPDATE THIS !!!!!!!!!
-    ">
-
-  <!--<script type="text/javascript" src="lib/bluff/js-class.js"></script>
-  <script type="text/javascript" src="lib/bluff/bluff-min.js"></script>-->
-
+    <meta name="description" content="Frequency domain analysis of RLC circuits, with a circuit diagram tool, source syntax checking, computation on Web Workers and graphing of results.">
   <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
-  <script type="text/javascript" src="lib/prototype.js"></script>
-  <script type="text/javascript" src="src/main.js"></script>
+  <script src="lib/prototype.js"></script>
+  <script src="src/main.js"></script>
   <style type="text/css">
-  #sourceCode
+  body
   {
-      font-family:"courier";
-      background-color:beige;
-      padding:10px;
-      width:400px;
+      width:850px;
+      margin: 0 auto;
+      font: 12px Verdana, sans-serif;
+      background: #CFCFCF url('imgs/sts.png') repeat fixed right bottom;
   }
-
+  #cn
+  {
+      margin:15px 0;padding:15px;
+      -webkit-box-shadow:2px 2px 6px #333333;
+      -moz-box-shadow:2px 2px 6px #333333;
+      border-radius:10px;
+      -moz-border-radius:10px;
+      background-color: #FFFFFF;
+      color: #3B3B3B;
+  }
+  textarea 
+  {
+      font: 15px Courier;
+  }
   .linenum
   {
       padding-right:5px;
@@ -50,28 +53,43 @@
       color:white;
       background-color:darkred;
   }
-
-  .graph 
+  .nb
   {
+      
+      margin:10px;padding-left: 13px;
+      background-image: -webkit-gradient(linear, 0% 100%, 0% 0%, color-stop(0.1, rgb(43, 125, 37)),color-stop(0.55, rgb(69, 163, 63))); 
+          background-image:-moz-linear-gradient(
+              center bottom, rgb(43, 125, 37) 10%, rgb(69, 163, 63) 55%
+          );
+      border-radius: 20px 20px;
+      -moz-border-radius: 20px 20px;
+      color: white;
+      display: block;
+      height: 50px;
+      line-height: 50px;
+      text-shadow: #333 1px 1px 4px;
+      margin-left:150px;
+      width:145px;
+      cursor:pointer;
+      font-weight:600;
+      border:1px solid rgb(63, 145, 57);
   }
-  
-  #diagram
+  #nbc
   {
-      clear:left;
-      width:500;
-      height:500;
+      background-image: -webkit-gradient(linear, 0% 100%, 0% 0%, color-stop(0.1, rgb(41,155,232)),color-stop(0.55, rgb(52,185,255))); 
+        background-image:-moz-linear-gradient(
+            center bottom, rgb(41,155,232) 10%, rgb(52,185,255) 55%
+        );
+      margin-left:190px;
+      width: 210px;
+      border:1px solid rgb(41,155,232);
   }
-  .gridel 
+  .big
   {
-      border:1px solid #ccc;
-      background-color:#eee;
-      width:50px; height:50px;
-      padding:0;margin:0;
-      float:left;
-  }
-  .row
-  {
-      clear:left;
+    float:right;
+      position:relative; top:-4px;left:-9px;
+      font-size:50px;
+      font-weight:200;
   }
   .f {
       -webkit-transform: rotate(-180deg);
@@ -91,34 +109,127 @@
         transform: rotate(-90deg);
         /*filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=3);*/
   }
+  #tbx
+  {
+      height:150px;
+  }  
+  #diag
+  {
+      padding-right:30px;
+      border-right:2px solid #bbb;
+      float:left;
+      width:420px;
+  }
+  #txt
+  {
+      /*border-right:2px solid black;*/
+      padding:0 30px;
+      float:left;
+      /*border:1px solid red;*/
+      width:300px;
+  }
+  #srC
+  {
+      font-family:"courier";
+      background-color:beige;
+      padding:10px;
+      width:300px;
+      height:400px;
+      overflow:scroll;
+  }
+
+  .gridel 
+  {
+      border:1px solid #ccc;
+      background-color:#eee;
+      width:50px; height:50px;
+      padding:0;margin:0;
+      float:left;
+      text-align:center;
+  }
+  .row
+  {
+      clear:left;
+  }
+  #sT
+  {
+      visibility:hidden;
+      /*-webkit-box-shadow:2px 2px 10px #333333;*/
+      text-align:center;
+      border:1px solid #ccc;
+      border-radius:10px;
+      background-color: #FFFCEE;
+      height:15px;
+      line-height: 12px;
+      margin-bottom:20px;
+  }
+  #plots
+  {
+      clear:left;
+  }
+  #footer
+  {
+      clear:left;
+      text-align:center;
+  }
+  #lG
+  {
+      float:left;
+      position:relative;
+      top:25px; left:10px;
+  }
+  #dB
+  {
+      margin-left:250px;
+      width:550px;
+      font-size:15px;
+  }
+  h1
+  {
+      color:#333;
+      text-shadow: #FFFCEE 1px 1px 4px;
+  }
+  .d 
+  {
+      height:180px;
+  }
   </style>
 </head>
+
 <body>
-<h1>Frequency Domain RLC Circuit Analysis</h1><h2>Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC circuits.</h2><p>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><p>Copyright Stephen Ierodiaconou 2010, MIT License</p>
     
-    Status: <p id="status"></p>
+    <h1>Frequency Domain RLC Circuit Analysis</h1>
+    <div id="cn">
+    <div id="lG"></div>
     
-    <div id="plots"></div> <!-- where the plots go -->
+    <p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>
+
+
+<div id="sT"></div>
+
+<div id="plots"><a name="graphs"></a></div>
+<div id="diag">    
+    <p class="d">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>
     
-    <a onClick="lEx(0)">Ex. 1</a>|<a onClick="lEx(1)">Ex. 2</a>|<a onClick="lEx(2)">Ex. 3</a><input type="button" value="Analyse..." onClick="return aC()">
-    
-    <form name="cEd"> <!-- DO WE NEED A FORM AT ALL??????????????? -->
-        <textarea name="cir" rows="15" cols="30"></textarea>
-    </form>
-    
-    <div id="sourceCode"></div> <!-- highlighted code -->
-    
-    <div id="tbx"><p id="del" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">DEL</p></div>
-    <br><div id="diagram"></div> <!-- where the diagram editor is -->
     <input type="text" value="100" id="ft"><input type="text" value="0.001" id="fs"><input type="text" value="100" id="fe">
-    <input type="button" value="Create Description and Simulate..." onClick="return cTx()">
+    <div id="tbx"><p id="del" class="gridel" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">Drag here to Delete</p></div>
+    <br><div id="diagram"></div>
+</div>
+
+<div id="txt">
+    <p class="d">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><a onClick="lEx(0)">Ex. 1</a>|<a onClick="lEx(1)">Ex. 2</a>|<a onClick="lEx(2)">Ex. 3</a></p>
+    <div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div>
+    <form name="cEd"> 
     
-    <!--
-    <div id="circuitDiagram">
-        <canvas id="diagramcanvas" width="500" height="300"></canvas>
-        <canvas id="graphcanvas" width="800" height="600"></canvas>
-    </div>
-    -->
-</body>
+    <!-- DO WE NEED A FORM AT ALL??????????????? -->
+    
+        <textarea name="cir" rows="11" cols="32"></textarea>
+    </form>
+    <div id="srC"></div>
+</div>
+
+<div id="footer">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div>
+</div></body>
 </html>
 
