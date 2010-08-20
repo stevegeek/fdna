@@ -198,7 +198,7 @@ function HighlightAndSyntaxCheckSimpleSource(source)
 
     for (; i < count; i++)
     {
-        highlightedSource += 'ZX"linenum">'+i+'.J';
+        highlightedSource += 'ZX"ln">'+i+'.J';
         if (lines[i] == "" || lines[i].match(/^\s*$/))
             highlightedSource += 'B';
         else if (lines[i].match(components))
@@ -212,16 +212,16 @@ function HighlightAndSyntaxCheckSimpleSource(source)
         else if (lines[i].match(endcommand))
             highlightedSource += 'ZXKEJB';
         else if (lines[i].match(comment))
-            highlightedSource += 'ZX"comment">&#35; '+RegExp.$1+'JB';
+            highlightedSource += 'ZX"cm">&#35; '+RegExp.$1+'JB';
         else
         {
             errors.push({line: i})
-            highlightedSource += 'ZX"syntaxerror">'+lines[i]+'J<br>';
+            highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
         }
     }
     
     var search = 'XZJKNYB',
-        replace = ['class=','<span ','</span>&nbsp;','"keyword">', '"node">', '"value">', '<br>'];
+        replace = ['class=','<span ','</span>&nbsp;','"ky">', '"nd">', '"vl">', '<br>'];
 
     for (i=0; i < 7; i++)
         highlightedSource = highlightedSource.replace(RegExp(search.charAt(i),'g'), replace[i]);
@@ -259,7 +259,7 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
         new Element('img', { e:'x', src:'imgs/x1.png', 'class':'rot', t:-1,r:-1,b:-1,l:-1})
         ];
 */
-var imgCode = 'var cim = [ArhBrCDAlhBlCDAchBcCDAshBsCDArvBrCZAlvBlCZAcvBcCZAsvBsC-1,r:-2,b:-1,l:-2F,AptBpC-1,r:-2,b:-2,l:-2}),AgtBgC0,r:-2,b:-2,l:-2}),AhBhCDAkbrBkC-2,r:-1,b:-1,l:-2}),AktlBkC-1,r:-2,b:-2,l:-1GAtrBtC-1,r:-1,b:-1,l:-2}),AtlBtC-1,r:-2,b:-1,l:-1GAplBpC-2,r:-2,b:-2,l:-1F,AglBgC-2,r:-2,b:-2,l:0F,AvBhCZAktrBkC-1,r:-1,b:-2,l:-2F,AkblBkC-2,r:-2,b:-1,l:-1HAttBtC-1,r:-1,b:-2,l:-1F,AtbBtC-2,r:-1,b:-1,l:-1HAxBxC-1,r:-1,b:-1,l:-1F];',
+var imgCode = 'var cim = [ArhBrCDAlhBlCDAchBcCDAshBsCDAhBhCDAplBpC-2,r:-2,b:-2,l:-1F,AglBgC-2,r:-2,b:-2,l:0F,ArvBrCZAlvBlCZAcvBcCZAsvBsC-1,r:-2,b:-1,l:-2F,AptBpC-1,r:-2,b:-2,l:-2}),AgtBgC0,r:-2,b:-2,l:-2}),AvBhCZAkbrBkC-2,r:-1,b:-1,l:-2}),AktlBkC-1,r:-2,b:-2,l:-1GAktrBkC-1,r:-1,b:-2,l:-2F,AkblBkC-2,r:-2,b:-1,l:-1HAtrBtC-1,r:-1,b:-1,l:-2}),AtlBtC-1,r:-2,b:-1,l:-1GAttBtC-1,r:-1,b:-2,l:-1F,AtbBtC-2,r:-1,b:-1,l:-1HAxBxC-1,r:-1,b:-1,l:-1F];',
     imgSearch = 'ABCDZFGH',
     imgReplace = ["new Element('img', { e:'","', src:'imgs/","1.png', t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'class':'rot'}),", ", 'class':'rot'})",", 'class':'f'}),", ", 'class':'frot'}),"];
     
@@ -270,7 +270,7 @@ eval(imgCode);
 
 // FIXME: '' are not needed for prop names
 var griddiv = new Element('div', { 
-        'class': 'gridel',
+        'class': 'gl',
         'draggable':'true',
         'ondragstart':"drag(this, event)",
         'ondragenter':"return false",
@@ -290,7 +290,7 @@ fromToolbox = /^tb(\d+)/;
 function drop(target, e) 
 {
     var id = e.dataTransfer.getData('text/plain');
-    console.log(target.id + " <- " + id)
+    //console.log(target.id + " <- " + id)
 
     //if from tbx create a clone at target and add to components
     // if contains a child then stop operation
@@ -301,19 +301,19 @@ function drop(target, e)
     {
         if (id.match(fromToolbox))
         {
-            console.log('add')
+            //console.log('add')
             var id = parseInt(RegExp.$1),
                 child = cim[id].clone(),
                 n = child.getAttribute('e'),
                 v = 0;
-            if (id < 8 )
+            if (id < 4 || (id > 6 && id < 11) )
                 n += '_' + prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", "").replace(',','_').replace(' ','')
             child.setAttribute('id', n);
             target.appendChild(child);
         }
         else
         {
-            console.log('move')
+            //console.log('move')
             target.appendChild($(id).firstChild.remove());
         }
     } else if (target.id == 'del')
@@ -535,7 +535,7 @@ function cTx()
     
     
     // Add F and E
-    document.cEd.cir.value = src + "F " + $('ft').value + " " + $('fs').value + " " + $('fe').value +"\nE";
+    $('cir').value = src + "F " + $('ft').value + " " + $('fs').value + " " + $('fe').value +"\nE";
       
     cS();
 }
@@ -592,9 +592,9 @@ function drawGraphs(data)
         //sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
         //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0);
 
-        console.log(datalen)
-        console.log(datastep)
-        console.log(axisstep)
+        //console.log(datalen)
+        //console.log(datastep)
+        //console.log(axisstep)
         
         var maxval = -10000.0, minval = 10000.0;
         for (p = 0; p < datalen; p++)
@@ -635,9 +635,9 @@ function drawGraphs(data)
 var src = null;
 function cS()
 {
-    if (src == document.cEd.cir.value) 
+    if (src == $('cir').value) 
         return true;
-    src = document.cEd.cir.value;
+    src = $('cir').value;
 
     var result = HighlightAndSyntaxCheckSimpleSource(src),
         errorInfo = "",
@@ -688,7 +688,7 @@ function aC()
             else
             {
                 sS("Graphing...");
-                console.log(analysed);
+                //console.log(analysed);
                 drawGraphs(analysed);
                 sS('Done. Click <a href="#graphs">here</a> to see the graphs!');
             }
@@ -699,7 +699,7 @@ function aC()
         };
 
         // post a string
-        analysisworker.postMessage(document.cEd.cir.value);
+        analysisworker.postMessage($('cir').value);
         
         return true;
     }
@@ -709,7 +709,7 @@ function aC()
 
 function lEx(ex)
 {
-    var d = document.cEd.cir;
+    var d = $('cir');
     switch (ex)
     {
         case 0:

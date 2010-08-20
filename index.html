@@ -1,92 +1,25 @@
 <!DOCTYPE html>
-<html><head><title>JS FDNA</title><meta charset="utf-8">
-    <meta name="description" content="Frequency domain analysis of RLC circuits, with a circuit diagram tool, source syntax checking, computation on Web Workers and graphing of results.">
-  <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
-  <script src="lib/prototype.js"></script>
-  <script src="src/main.js"></script>
-  <style type="text/css">
-  body
-  {
-      width:850px;
-      margin: 0 auto;
-      font: 12px Verdana, sans-serif;
-      background: #CFCFCF url('imgs/sts.png') repeat fixed right bottom;
-  }
-  #cn
-  {
-      margin:15px 0;padding:15px;
-      -webkit-box-shadow:2px 2px 6px #333333;
-      -moz-box-shadow:2px 2px 6px #333333;
-      border-radius:10px;
-      -moz-border-radius:10px;
-      background-color: #FFFFFF;
-      color: #3B3B3B;
-  }
-  textarea 
-  {
-      font: 15px Courier;
-  }
-  .linenum
-  {
-      padding-right:5px;
-      border-right:1px solid #ccc;
-      margin-right:20px;
-  }
-  .keyword
-  {
-      color:navy;
-  }
-  .node
-  {
-      color:saddlebrown;
-  }
-  .value
-  {
-      color:black;
-  }
-  .comment
-  {
-      color:darkgreen;
-  }
-  .syntaxerror
-  {
-      color:white;
-      background-color:darkred;
-  }
-  .nb
-  {
-      
-      margin:10px;padding-left: 13px;
+<html><head><title>JS FDNA</title><meta charset="utf-8"><meta name="description" content="Frequency domain analysis of RLC circuits, with a circuit diagram tool, source syntax checking, computation on Web Workers and graphing of results.">
+<!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
+<script src="lib/prototype.js"></script><script src="src/main.js"></script><style type="text/css">
+body{width:850px;margin: 0 auto;font:12px Verdana, sans-serif;background:#CFCFCF url('imgs/sts.png') repeat;}
+#cn{margin:15px 0;padding:15px;-webkit-box-shadow:2px 2px 6px #333;-moz-box-shadow:2px 2px 6px #333;border-radius:10px;-moz-border-radius:10px;background-color: #FFF;color: #3B3B3B;}
+.ln{border-right:1px solid #ccc;margin-right:20px;}
+.ky{color:navy;}.nd{color:saddlebrown;}.vl{color:#000;}.cm{color:#060;}.se{color:#fff;background-color:darkred;}
+.nb{margin:10px 10px 10px 150px;padding-left: 13px;
       background-image: -webkit-gradient(linear, 0% 100%, 0% 0%, color-stop(0.1, rgb(43, 125, 37)),color-stop(0.55, rgb(69, 163, 63))); 
           background-image:-moz-linear-gradient(
               center bottom, rgb(43, 125, 37) 10%, rgb(69, 163, 63) 55%
           );
-      border-radius: 20px 20px;
-      -moz-border-radius: 20px 20px;
-      color: white;
-      display: block;
-      height: 50px;
-      line-height: 50px;
+      border-radius: 20px 20px;-moz-border-radius: 20px 20px;
+      color: #fff;
+      /*display: block;*/
+      width:145px;height:50px;line-height: 50px;
       text-shadow: #333 1px 1px 4px;
-      margin-left:150px;
-      width:145px;
-      cursor:pointer;
-      font-weight:600;
-      border:1px solid rgb(63, 145, 57);
-  }
-  #nbc
-  {
-      background-image: -webkit-gradient(linear, 0% 100%, 0% 0%, color-stop(0.1, rgb(41,155,232)),color-stop(0.55, rgb(52,185,255))); 
-        background-image:-moz-linear-gradient(
-            center bottom, rgb(41,155,232) 10%, rgb(52,185,255) 55%
-        );
-      margin-left:190px;
-      width: 210px;
-      border:1px solid rgb(41,155,232);
-  }
-  .big
-  {
-    float:right;
+      cursor:pointer;font-weight:600;border:1px solid rgb(63, 145, 57);
+}
+#nbc{background-image: -webkit-gradient(linear, 0% 100%, 0% 0%, color-stop(0.1, rgb(41,155,232)),color-stop(0.55, rgb(52,185,255)));background-image:-moz-linear-gradient(center bottom, rgb(41,155,232) 10%, rgb(52,185,255) 55%);margin-left:190px;width:210px;border:1px solid rgb(41,155,232);}.big{
+      float:right;
       position:relative; top:-4px;left:-9px;
       font-size:50px;
       font-weight:200;
@@ -138,7 +71,7 @@
       overflow:scroll;
   }
 
-  .gridel 
+  .gl 
   {
       border:1px solid #ccc;
       background-color:#eee;
@@ -154,7 +87,6 @@
   #sT
   {
       visibility:hidden;
-      /*-webkit-box-shadow:2px 2px 10px #333333;*/
       text-align:center;
       border:1px solid #ccc;
       border-radius:10px;
@@ -162,74 +94,7 @@
       height:15px;
       line-height: 12px;
       margin-bottom:20px;
-  }
-  #plots
-  {
-      clear:left;
-  }
-  #footer
-  {
-      clear:left;
-      text-align:center;
-  }
-  #lG
-  {
-      float:left;
-      position:relative;
-      top:25px; left:10px;
-  }
-  #dB
-  {
-      margin-left:250px;
-      width:550px;
-      font-size:15px;
-  }
-  h1
-  {
-      color:#333;
-      text-shadow: #FFFCEE 1px 1px 4px;
-  }
-  .d 
-  {
-      height:180px;
-  }
-  </style>
-</head>
-
-<body>
-    
-    <h1>Frequency Domain RLC Circuit Analysis</h1>
-    <div id="cn">
-    <div id="lG"></div>
-    
-    <p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>
-
-
-<div id="sT"></div>
-
-<div id="plots"><a name="graphs"></a></div>
-<div id="diag">    
-    <p class="d">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-    <div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>
-    
-    <input type="text" value="100" id="ft"><input type="text" value="0.001" id="fs"><input type="text" value="100" id="fe">
-    <div id="tbx"><p id="del" class="gridel" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">Drag here to Delete</p></div>
-    <br><div id="diagram"></div>
-</div>
-
-<div id="txt">
-    <p class="d">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><a onClick="lEx(0)">Ex. 1</a>|<a onClick="lEx(1)">Ex. 2</a>|<a onClick="lEx(2)">Ex. 3</a></p>
-    <div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div>
-    <form name="cEd"> 
-    
-    <!-- DO WE NEED A FORM AT ALL??????????????? -->
-    
-        <textarea name="cir" rows="11" cols="32"></textarea>
-    </form>
-    <div id="srC"></div>
-</div>
-
-<div id="footer">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div>
-</div></body>
-</html>
+}#plots{clear:left;}#lG{float:left;position:relative;top:25px;left:10px;}#dB{padding:5px;margin-left:250px;width:550px;font-size:15px;background-color:#eee;}h1{color:#333;text-shadow: #FFFCEE 1px 1px 4px;}.d{height:100px;}
+</style></head><body><h1>Frequency Domain RLC Circuit Analysis</h1><div id="cn"><div id="lG"></div><p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><div id="sT"></div><div id="plots"><a name="graphs"></a></div>
+<div id="diag"><p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p><div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4"><div id="tbx"><p id="del" class="gl" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">Drag here to Delete</p></div><br><div id="diagram"></div></div><div id="txt"><p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a>|<a href="#" onClick="lEx(2)">(3)</a></p><div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div><div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div></div></body></html>
 

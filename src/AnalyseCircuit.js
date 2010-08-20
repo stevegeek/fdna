@@ -273,7 +273,7 @@ function GaussianElimination(matrix)
     if (eliminate (matrix))
         X = substitute(matrix);
     else
-        alert("Singular matrix in Gaussian Elimination! This circuit cannot be solved.");
+        throw "Singular matrix in Gaussian Elimination! Your node numbers must be sequential without gaps.";
     return X;
 }
 
@@ -287,13 +287,13 @@ function ParseSimpleFormatCircuitFromString (source)
         probelocations =    /^\s*P\s+([\d]+)\s*$/i,
         endcommand =        /^\s*E\s*$/i,
         comment =           /^\s*#(.*)$/,
-        er = new Array();
+        er = [],
         lines = source.split("\n"),
         count = lines.length,
         c = {
             simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
-            components: new Array(),
-            probes: new Array()
+            components: [],
+            probes: []
         },
         i = 0;
 
@@ -305,37 +305,40 @@ function ParseSimpleFormatCircuitFromString (source)
         }
         else if (lines[i].match(components))
         {
-            switch (RegExp.$1)
+            var r = RegExp;
+            switch (r.$1)
             {
                 case 'R': case 'r':
-                    c.components.push(ResistorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    c.components.push(ResistorMake(r.$2, r.$3, r.$4));
                     break;
                 case 'C': case 'c':
-                    c.components.push(CapacitorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    c.components.push(CapacitorMake(r.$2, r.$3, r.$4));
                     break;
                 case 'L': case 'l':
-                    c.components.push(InductorMake(RegExp.$2, RegExp.$3, RegExp.$4));
+                    c.components.push(InductorMake(r.$2, r.$3, r.$4));
                     break;
             }
         }
         else if (lines[i].match(sources))
         {
-            switch (RegExp.$1)
+            var r = RegExp;
+            switch (r.$1)
             {
                 case 'I': case 'i':
                     //c.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
-                    c.components.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
+                    c.components.push(CurrentSourceMake(r.$2, r.$3, r.$4, r.$5));
                     break;
                 case 'V': case 'v':
-                    c.components.push(VoltageSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5));
+                    c.components.push(VoltageSourceMake(r.$2, r.$3, r.$4, r.$5));
                     break;
             }
         }
         else if (lines[i].match(simulationinfo))
         {
-            c.simulationinfo.steps = pI(RegExp.$1);
-            c.simulationinfo.startFrequency = pF(RegExp.$2);
-            c.simulationinfo.endFrequency = pF(RegExp.$3);
+            var r = RegExp;
+            c.simulationinfo.steps = pI(r.$1);
+            c.simulationinfo.startFrequency = pF(r.$2);
+            c.simulationinfo.endFrequency = pF(r.$3);
         }
         else if (lines[i].match(probelocations))
         {
