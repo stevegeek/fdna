@@ -179,22 +179,24 @@ if(!Worker)
 
 
 // *****************************************************************************
-/*
-0 : h resistor
-*/
-var index = {'rh':0,'ch':25,'lh':45},
-    coords = [
-                0,25,5,25,7.5,30,12.5,20,17.5,30,22.5,20,27.5,30,32.5,20,37.5,30,42.5,20,45,25,50,25,'e',
-                0,25,22.5,25,'m',22,15,22,35,'m',28,15,28,35,'m',28,25,50,25,'e',
-                0,25,5,25,'a',10,25,5,'a',20,25,5,'a',30,25,5,'a',40,25,5,50,25,'e'
-             ];
-    
+
 // FIXME: reg exp replacement to shrink coord array or offset everything by 20
-function drawElement(canvas,type,rot)
+function drawElement(canvas,type,rot,value)
 {
+
     var cx = canvas.getContext("2d"),
         i = 0,
-        t = index[type];
+        index = {'r':0,'c':25,'l':45, 's':70, 'p':85, 'g':94},
+        a = 20, b = 25, c = 30,
+        coords = [
+                    0,b,5,b,7.5,c,12.5,a,17.5,c,22.5,a,27.5,c,32.5,a,37.5,c,42.5,a,45,b,50,b,'e',
+                    0,b,22.5,b,'m',22,15,22,35,'m',28,15,28,35,'m',28,b,50,b,'e',
+                    0,b,5,b,'a',10,b,5,1,'a',a,b,5,1,'a',c,b,5,1,'a',40,b,5,1,50,b,'e',
+                    0,b,15,b,'m',35,b,50,b,'a',b,b,10,2,'e',
+                    0,b,c,a,c,c,0,b,'e',
+                    0,b,c,b,'m',c,15,c,35,'m',35,20,35,30,'m',40,22,40,27,'e'
+                 ],
+        t = index[type.charAt(0)];
     //canvas.width = canvas.width;
     cx.beginPath();
     cx.moveTo(coords[t],coords[1+t]);
@@ -203,11 +205,12 @@ function drawElement(canvas,type,rot)
         if (coords[i+t] == 'm')
             cx.moveTo(coords[i+t+1]+.5,coords[i+2+t]+.5),i+=3;
         else if (coords[i+t] == 'a')
-            cx.arc(coords[i+t+1]+.5,coords[i+2+t]+.5,coords[i+3+t],Math.PI,0,false),i+=4;
+            cx.arc(coords[i+t+1]+.5,coords[i+2+t]+.5,coords[i+3+t],Math.PI*coords[i+4+t],0,false),i+=5;
         else
             cx.lineTo(coords[i+t]+.5,coords[i+1+t]+.5),i+=2;
     }
     cx.stroke();
+    if(value > 0) cx.fillText(""+value, 10, 10);
     if(rot) cx.rotate(1.57);
 }
 
@@ -293,13 +296,12 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
 */
 
 // FIXME: remove src and class
-var imgCode = 'var cim = [ArhBrCDAlhBlCDAchBcCDAshBsCDAhBhCDAplBpC-2,r:-2,b:-2,l:-1F,AglBgC-2,r:-2,b:-2,l:0F,ArvBrCZAlvBlCZAcvBcCZAsvBsC-1,r:-2,b:-1,l:-2F,AptBpC-1,r:-2,b:-2,l:-2}),AgtBgC0,r:-2,b:-2,l:-2}),AvBhCZAkbrBkC-2,r:-1,b:-1,l:-2}),AktlBkC-1,r:-2,b:-2,l:-1GAktrBkC-1,r:-1,b:-2,l:-2F,AkblBkC-2,r:-2,b:-1,l:-1HAtrBtC-1,r:-1,b:-1,l:-2}),AtlBtC-1,r:-2,b:-1,l:-1GAttBtC-1,r:-1,b:-2,l:-1F,AtbBtC-2,r:-1,b:-1,l:-1HAxBxC-1,r:-1,b:-1,l:-1F];',
+var imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2,r:-2,b:-2,l:-1F,AglBC-2,r:-2,b:-2,l:0F,ArvBCZAlvBCZAcvBCZAsvBC-1,r:-2,b:-1,l:-2F,AptBC-1,r:-2,b:-2,l:-2}),AgtBC0,r:-2,b:-2,l:-2}),AvBCZAkbrBC-2,r:-1,b:-1,l:-2}),AktlBC-1,r:-2,b:-2,l:-1GAktrBC-1,r:-1,b:-2,l:-2F,AkblBC-2,r:-2,b:-1,l:-1HAtrBC-1,r:-1,b:-1,l:-2}),AtlBC-1,r:-2,b:-1,l:-1GAttBC-1,r:-1,b:-2,l:-1F,AtbBC-2,r:-1,b:-1,l:-1HAxBC-1,r:-1,b:-1,l:-1F];',
     imgSearch = 'ABCDZFGH',
-    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, src:'imgs/","1.png', t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'class':'rot'}),", ", 'class':'rot'})",", 'class':'f'}),", ", 'class':'frot'}),"];
-    
+    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'class':'rot'}),", ", 'class':'rot'})",", 'class':'f'}),", ", 'class':'frot'}),"];
+
     for (i=0; i < imgSearch.length; i++)
         imgCode = imgCode.replace(RegExp(imgSearch.charAt(i),'g'), imgReplace[i]);
-        
 eval(imgCode);
 
 // FIXME: '' are not needed for prop names
@@ -339,12 +341,13 @@ function drop(target, e)
             var id = parseInt(RegExp.$1),
                 child = cim[id].clone(),
                 n = child.getAttribute('e'),
-                v = 0;
+                value = -1;
             if (id < 4 || (id > 6 && id < 11) )
-                n += '_' + prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", "").replace(',','_').replace(' ','')
+                value = prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", ""), n += '_' + value.replace(',','_').replace(' ','')
             child.setAttribute('id', n);
             
-            drawElement(child,child.getAttribute('e'),0);
+            // FIXME: ROTATION NEEDED
+            drawElement(child,child.getAttribute('e'),0,value);
             
             target.appendChild(child);
         }
