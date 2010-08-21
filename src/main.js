@@ -186,15 +186,20 @@ function drawElement(canvas,type,rot,value)
 
     var cx = canvas.getContext("2d"),
         i = 0,
-        index = {'r':0,'c':25,'l':45, 's':70, 'p':85, 'g':94},
-        a = 20, b = 25, c = 30,
+        index = {r:0,c:25,l:45,s:70,p:85,g:94,h:114,h:114,v:119,k:124,t:131,x:141},
+        a = 20, b = 25, c = 30, d = 50,
         coords = [
                     0,b,5,b,7.5,c,12.5,a,17.5,c,22.5,a,27.5,c,32.5,a,37.5,c,42.5,a,45,b,50,b,'e',
                     0,b,22.5,b,'m',22,15,22,35,'m',28,15,28,35,'m',28,b,50,b,'e',
                     0,b,5,b,'a',10,b,5,1,'a',a,b,5,1,'a',c,b,5,1,'a',40,b,5,1,50,b,'e',
                     0,b,15,b,'m',35,b,50,b,'a',b,b,10,2,'e',
                     0,b,c,a,c,c,0,b,'e',
-                    0,b,c,b,'m',c,15,c,35,'m',35,20,35,30,'m',40,22,40,27,'e'
+                    0,b,c,b,'m',c,15,c,35,'m',35,20,35,30,'m',40,22,40,27,'e',
+                    0,b,50,b,'e',
+                    0,b,50,b,'e',//b,0,b,50,'e',
+                    b,50,b,b,50,b,'e',
+                    b,50,b,0,'m',b,b,50,b,'e',
+                    b,50,b,0,'m',0,b,50,b,'e'
                  ],
         t = index[type.charAt(0)];
     //canvas.width = canvas.width;
@@ -294,7 +299,7 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
         new Element('img', { e:'x', src:'imgs/x1.png', 'class':'rot', t:-1,r:-1,b:-1,l:-1})
         ];
 */
-
+// h k t x
 // FIXME: remove src and class
 var imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2,r:-2,b:-2,l:-1F,AglBC-2,r:-2,b:-2,l:0F,ArvBCZAlvBCZAcvBCZAsvBC-1,r:-2,b:-1,l:-2F,AptBC-1,r:-2,b:-2,l:-2}),AgtBC0,r:-2,b:-2,l:-2}),AvBCZAkbrBC-2,r:-1,b:-1,l:-2}),AktlBC-1,r:-2,b:-2,l:-1GAktrBC-1,r:-1,b:-2,l:-2F,AkblBC-2,r:-2,b:-1,l:-1HAtrBC-1,r:-1,b:-1,l:-2}),AtlBC-1,r:-2,b:-1,l:-1GAttBC-1,r:-1,b:-2,l:-1F,AtbBC-2,r:-1,b:-1,l:-1HAxBC-1,r:-1,b:-1,l:-1F];',
     imgSearch = 'ABCDZFGH',
@@ -381,6 +386,10 @@ function drawCircuitEditor()
         a.appendChild(c);
         $('tbx').appendChild(a);
     }
+    c = griddiv.clone();
+    c.setAttribute('id','del');
+    c.innerHTML = "Drag here to Delete";
+    $('tbx').appendChild(c)
 
     for (; j < gridSize; j++)
     {

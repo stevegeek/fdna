@@ -109,7 +109,7 @@ body{width:850px;margin:0 auto;font:12px Verdana, sans-serif;background:#CFCFCF 
             <p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p>
             <div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>
             F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4">
-            <div id="tbx"><p id="del" class="gl" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">Drag here to Delete</p></div>
+            <div id="tbx"></div>
             <br><div id="diagram"></div>
         </div>
         <div id="txt">
