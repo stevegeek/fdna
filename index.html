@@ -95,6 +95,30 @@ body{width:850px;margin:0 auto;font:12px Verdana, sans-serif;background:#CFCFCF 
       line-height: 12px;
       margin-bottom:20px;
 }#plots{clear:left;}#lG{float:left;position:relative;top:25px;left:10px;}#dB{padding:5px;margin-left:250px;width:550px;font-size:15px;background-color:#eee;}h1{color:#333;text-shadow: #FFFCEE 1px 1px 4px;}.d{height:100px;}
-</style></head><body><h1>Frequency Domain RLC Circuit Analysis</h1><div id="cn"><div id="lG"></div><p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><div id="sT"></div><div id="plots"><a name="graphs"></a></div>
-<div id="diag"><p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p><div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4"><div id="tbx"><p id="del" class="gl" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">Drag here to Delete</p></div><br><div id="diagram"></div></div><div id="txt"><p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a>|<a href="#" onClick="lEx(2)">(3)</a></p><div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div><div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div></div></body></html>
+</style>
+</head>
+<body>
+    <h1>Frequency Domain RLC Circuit Analysis</h1>
+    <div id="cn">
+        <div id="lG"></div>
+        <p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>
+        <div id="sT"></div>
+        <div id="plots"><a name="graphs"></a></div>
+
+        <div id="diag">
+            <p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p>
+            <div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>
+            F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4">
+            <div id="tbx"><p id="del" class="gl" ondrop="drop(this, event)" ondragenter="return false" ondragover="return false">Drag here to Delete</p></div>
+            <br><div id="diagram"></div>
+        </div>
+        <div id="txt">
+            <p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a>|<a href="#" onClick="lEx(2)">(3)</a></p>
+            <div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div>
+            <textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea>
+            <div id="srC"></div>
+        </div>
+        <div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div>
+    </div>
+</body></html>
 

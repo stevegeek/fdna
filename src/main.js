@@ -179,7 +179,27 @@ if(!Worker)
 
 
 // *****************************************************************************
-
+/*
+0 : h resistor
+*/
+var index = {'rh':0},
+    coords = [
+                0,25,5,25,7.5,30,12.5,20,17.5,30,22.5,20,27.5,30,32.5,20,37.5,30,42.5,20,45,25,50,25,'e'
+             ];
+    
+// FIXME: reg exp replacement to shrink coord array
+function drawElement(canvas,type,rot)
+{
+    var cx = canvas.getContext("2d"),
+        i = 0,
+        t = index[type];
+    //canvas.width = canvas.width;
+    cx.beginPath();
+    cx.moveTo(coords[t],coords[1+t]);
+    while (coords[i+t] != 'e' && (typeof coords[i+t] != 'undefined')) cx.lineTo(coords[i+t]+.5,coords[i+1+t]+.5),i+=2;
+    cx.stroke();
+    if(rot) cx.rotate(1.57);
+}
 
 /// FIXME: optims, make a global for document.cEd.cir, i, j 'var' everywhere
 
@@ -261,9 +281,11 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
         new Element('img', { e:'x', src:'imgs/x1.png', 'class':'rot', t:-1,r:-1,b:-1,l:-1})
         ];
 */
+
+// FIXME: remove src and class
 var imgCode = 'var cim = [ArhBrCDAlhBlCDAchBcCDAshBsCDAhBhCDAplBpC-2,r:-2,b:-2,l:-1F,AglBgC-2,r:-2,b:-2,l:0F,ArvBrCZAlvBlCZAcvBcCZAsvBsC-1,r:-2,b:-1,l:-2F,AptBpC-1,r:-2,b:-2,l:-2}),AgtBgC0,r:-2,b:-2,l:-2}),AvBhCZAkbrBkC-2,r:-1,b:-1,l:-2}),AktlBkC-1,r:-2,b:-2,l:-1GAktrBkC-1,r:-1,b:-2,l:-2F,AkblBkC-2,r:-2,b:-1,l:-1HAtrBtC-1,r:-1,b:-1,l:-2}),AtlBtC-1,r:-2,b:-1,l:-1GAttBtC-1,r:-1,b:-2,l:-1F,AtbBtC-2,r:-1,b:-1,l:-1HAxBxC-1,r:-1,b:-1,l:-1F];',
     imgSearch = 'ABCDZFGH',
-    imgReplace = ["new Element('img', { e:'","', src:'imgs/","1.png', t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'class':'rot'}),", ", 'class':'rot'})",", 'class':'f'}),", ", 'class':'frot'}),"];
+    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, src:'imgs/","1.png', t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'class':'rot'}),", ", 'class':'rot'})",", 'class':'f'}),", ", 'class':'frot'}),"];
     
     for (i=0; i < imgSearch.length; i++)
         imgCode = imgCode.replace(RegExp(imgSearch.charAt(i),'g'), imgReplace[i]);
@@ -311,6 +333,9 @@ function drop(target, e)
             if (id < 4 || (id > 6 && id < 11) )
                 n += '_' + prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", "").replace(',','_').replace(' ','')
             child.setAttribute('id', n);
+            
+            drawElement(child,child.getAttribute('e'),0);
+            
             target.appendChild(child);
         }
         else
@@ -330,14 +355,17 @@ function drawCircuitEditor()
 {
     var i = 0,
         j = 0,
-        elements = [];
+        elements = [],
+        c;
         
     // create toolbox    
     for (i = 0; i < cim.length; i++)
     {
         var a = griddiv.clone();
         a.setAttribute('id',"tb"+i);
-        a.appendChild(cim[i].clone());
+        c = cim[i].clone();
+        drawElement(c,c.getAttribute('e'),0);
+        a.appendChild(c);
         $('tbx').appendChild(a);
     }
 
@@ -743,6 +771,9 @@ onload = function ()
     cS();
 
     drawCircuitEditor();
+    /*var c =new Element('canvas', {'width':50,'height':50});
+    drawElement(c,'rh', 0)
+    $('diagram').appendChild(c);*/
 
     setInterval('cS()', 200);
 }
