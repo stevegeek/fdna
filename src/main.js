@@ -182,12 +182,14 @@ if(!Worker)
 /*
 0 : h resistor
 */
-var index = {'rh':0},
+var index = {'rh':0,'ch':25,'lh':45},
     coords = [
-                0,25,5,25,7.5,30,12.5,20,17.5,30,22.5,20,27.5,30,32.5,20,37.5,30,42.5,20,45,25,50,25,'e'
+                0,25,5,25,7.5,30,12.5,20,17.5,30,22.5,20,27.5,30,32.5,20,37.5,30,42.5,20,45,25,50,25,'e',
+                0,25,22.5,25,'m',22,15,22,35,'m',28,15,28,35,'m',28,25,50,25,'e',
+                0,25,5,25,'a',10,25,5,'a',20,25,5,'a',30,25,5,'a',40,25,5,50,25,'e'
              ];
     
-// FIXME: reg exp replacement to shrink coord array
+// FIXME: reg exp replacement to shrink coord array or offset everything by 20
 function drawElement(canvas,type,rot)
 {
     var cx = canvas.getContext("2d"),
@@ -196,7 +198,15 @@ function drawElement(canvas,type,rot)
     //canvas.width = canvas.width;
     cx.beginPath();
     cx.moveTo(coords[t],coords[1+t]);
-    while (coords[i+t] != 'e' && (typeof coords[i+t] != 'undefined')) cx.lineTo(coords[i+t]+.5,coords[i+1+t]+.5),i+=2;
+    while (coords[i+t] != 'e' && (typeof coords[i+t] != 'undefined')) 
+    {
+        if (coords[i+t] == 'm')
+            cx.moveTo(coords[i+t+1]+.5,coords[i+2+t]+.5),i+=3;
+        else if (coords[i+t] == 'a')
+            cx.arc(coords[i+t+1]+.5,coords[i+2+t]+.5,coords[i+3+t],Math.PI,0,false),i+=4;
+        else
+            cx.lineTo(coords[i+t]+.5,coords[i+1+t]+.5),i+=2;
+    }
     cx.stroke();
     if(rot) cx.rotate(1.57);
 }
