@@ -33,6 +33,9 @@
 
 // http://www.iteral.com/jscrush/
 
+
+// Dont rename return {c : {p}, r }
+
 // Short names
 pF = parseFloat;
 pI = parseInt;
@@ -98,12 +101,10 @@ function ZSubtract(z, term)
 }
 
 // Component Helper Methods
-function CurrentSourceMake(pin1, pin2, magnitude, phase, tolerance, state)
+function CurrentSourceMake(pin1, pin2, magnitude, phase)
 {
     // current flows opposite to convention of voltage +/-
     return {type:'I',
-            state:state,
-            tolerance:pF(tolerance),
             magnitude:pF(magnitude),
             phase:pF(phase),
             pins: new Array(pI(pin1), pI(pin2)),
@@ -117,11 +118,9 @@ function CurrentSourceAdmittanceAtOmega(isrc, omega)
     return isrc.admittance;
 }
 
-function VoltageSourceMake(pin1, pin2, magnitude, phase, tolerance, state)
+function VoltageSourceMake(pin1, pin2, magnitude, phase)
 {
     return {type:'V',
-            state:state,
-            tolerance:pF(tolerance),
             magnitude:pF(magnitude),
             phase:pF(phase),
             pins: new Array(pI(pin1), pI(pin2)),
@@ -139,11 +138,9 @@ function ProbeMake(pin)
     return {pin: pin};
 }
 
-function ResistorMake(pin1, pin2, value, tolerance, state)
+function ResistorMake(pin1, pin2, value)
 {
     return {type: 'R',
-            state: state,
-            tolerance: pF(tolerance),
             value: pF(value),
             pins: new Array(pI(pin1), pI(pin2)),
             // Zr = R
@@ -157,11 +154,9 @@ function ResistorAdmittanceAtOmega(res, omega)
     return res.admittance;
 }
 
-function CapacitorMake(pin1, pin2, value, tolerance, state)
+function CapacitorMake(pin1, pin2, value)
 {
     return {type: 'C',
-            state: state,
-            tolerance: pF(tolerance),
             value: pF(value),
             pins: new Array(pI(pin1), pI(pin2)),
             // Zc = 1/jwC
@@ -177,11 +172,9 @@ function CapacitorAdmittanceAtOmega(cap, omega)
     return a;
 }
 
-function InductorMake(pin1, pin2, value, tolerance, state)
+function InductorMake(pin1, pin2, value)
 {
     return {type: 'L',
-            state: state,
-            tolerance: pF(tolerance),
             value: pF(value),
             pins: new Array(pI(pin1), pI(pin2)),
             // Zl = jwL
@@ -293,7 +286,7 @@ function ParseSimpleFormatCircuitFromString (source)
         c = {
             simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
             components: [],
-            probes: []
+            p: []
         },
         i = 0;
 
@@ -342,7 +335,7 @@ function ParseSimpleFormatCircuitFromString (source)
         }
         else if (lines[i].match(probelocations))
         {
-            c.probes.push(ProbeMake(RegExp.$1));
+            c.p.push(ProbeMake(RegExp.$1));
         }
         else if (lines[i].match(endcommand))
         {
@@ -511,11 +504,11 @@ function Analyse (parseResult)
 
         //return matrix;
         // solve matrix
-        result[step] = {solution: GaussianElimination(matrix),frequency: frequency, omega: omega};
+        result[step] = {s: GaussianElimination(matrix),f: frequency, o: omega};
         frequency += fstep;
     }
 
-    return {result:result, circuit:circuit};
+    return {r:result, c:circuit};
 };
 /*
 self.addEventListener('message', function (event)

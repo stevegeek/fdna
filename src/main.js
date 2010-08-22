@@ -183,7 +183,6 @@ if(!Worker)
 // FIXME: reg exp replacement to shrink coord array or offset everything by 20
 function drawElement(canvas,type,rot,value)
 {
-
     var cx = canvas.getContext("2d"),
         i = 0,
         index = {r:0,c:25,l:45,s:70,p:85,g:94,h:114,h:114,v:119,k:124,t:131,x:141},
@@ -382,7 +381,7 @@ function drawCircuitEditor()
         var a = griddiv.clone();
         a.setAttribute('id',"tb"+i);
         c = cim[i].clone();
-        drawElement(c,c.getAttribute('e'),0);
+        drawElement(c,c.getAttribute('e'),0,-1);
         a.appendChild(c);
         $('tbx').appendChild(a);
     }
@@ -447,7 +446,7 @@ function propagateWireNodes()
                         //    c.setAttribute(offsets[k], curnode);
                         if (prev)
                             propagate = true;
-                            
+
                         if (curnode > -1)
                         {
                             //console.log('assign all wire pins')
@@ -463,8 +462,7 @@ function propagateWireNodes()
                     }
                     else 
                         prev = true; // there is at least one pin connected
-                    
-                }                
+                }
             }
         }
     }
@@ -603,8 +601,8 @@ function drawGraphs(data)
 {
     // remove previous graphs
     var graphs = $('plots').select('canvas.graph'),
-        probes = (typeof data.circuit.probes == 'string') ? (JSON.parse(data.circuit.probes)):(data.circuit.probes),
-        stepanalysis = (typeof data.result == 'string') ? (JSON.parse(data.result)) : (data.result),
+        probes = (typeof data.c.p == 'string') ? (JSON.parse(data.c.p)):(data.c.p),
+        stepanalysis = (typeof data.r == 'string') ? (JSON.parse(data.r)) : (data.r),
         i = 0;
             
     for (; i < graphs.length; i++)
@@ -651,7 +649,7 @@ function drawGraphs(data)
         var maxval = -10000.0, minval = 10000.0;
         for (p = 0; p < datalen; p++)
         {
-            var z = stepanalysis[p].solution[node];
+            var z = stepanalysis[p].s[node];
             points[p] = Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
             if (points[p] > maxval)
                 maxval = points[p];
@@ -726,6 +724,7 @@ function aC()
     {
         sS("Analysing...");
         var analysisworker = new Worker('src/AnalyseCircuit.js');
+        //var analysisworker = new Worker('src/ac.js');
         
         //analysisworker.addEventListener('message', function (event) 
         analysisworker.onmessage = function (event)
