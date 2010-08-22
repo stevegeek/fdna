@@ -28,164 +28,531 @@
 */
 
 // *****************************************************************************
-// http://code.google.com/p/ie-web-worker/
-/*
-        Create a fake worker thread of IE and other browsers
-        Remember: Only pass in primitives, and there is none of the native
-                        security happening
-*/
-if(!Worker)
+
+// Optimisations:
+// note http://jsperf.com/adding-items-array/6  shows a[i] = blah; to be faster than a.push(blah) in webkit
+
+
+// http://www.iteral.com/jscrush/
+var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
+    sources =           /^\s*([IV])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
+    simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
+    probelocations =    /^\s*P\s+([\d]+)\s*$/i,
+    endcommand =        /^\s*E\s*$/i,
+    comment =           /^\s*#(.*)$/;
+
+// Dont rename return {c : {p}, r }
+
+// Short names
+pF = parseFloat;
+pI = parseInt;
+
+// Complex Number Methods
+function ZMake(Re, Im)
 {
-    var Worker = function ( scriptFile )
-    {
-        var self = this,
-            __timer = null,
-            __text = null,
-            __fileContent = null,
-            onmessage;
-
-        self.onerror = null ;
-        self.onmessage = null ;
-
-        // child has run itself and called for it's parent to be notified
-        var postMessage = function( text )
-        {
-                if ( "function" == typeof self.onmessage )
-                {
-                        return self.onmessage( { "data" : text } ) ;
-                }
-                return false ;
-        } ;
-
-        // Method that starts the threading
-        self.postMessage = function( text )
-        {
-                __text = text ;
-                __iterate() ;
-                return true ;
-        } ;
-
-        var __iterate = function()
-        {
-                // Execute on a timer so we dont block (well as good as we can get in a single thread)
-                __timer = setTimeout(__onIterate,1);
-                return true ;
-        } ;
-
-        var __onIterate = function()
-        {
-                try
-                {
-                        if ( "function" == typeof onmessage )
-                        {
-                                onmessage({ "data" : __text });
-                        }
-                        return true ;
-                }
-                catch( ex )
-                {
-                        if ( "function" == typeof self.onerror )
-                        {
-                                return self.onerror( ex ) ;
-                        }
-                }
-                return false ;
-        } ;
-
-
-        self.terminate = function ()
-        {
-                clearTimeout( __timer ) ;
-                return true ;
-        } ;
-
-
-        // FIXME: REPLACE WITH PROTOTYPE
-        
-        /* HTTP Request*/
-        /*
-        var getHTTPObject = function () 
-        {
-                var xmlhttp;
-                try 
-                {
-                        xmlhttp = new XMLHttpRequest();
-                }
-                catch (e) 
-                {
-                        try 
-                        {
-                                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-                        }
-                        catch (e) 
-                        {
-                                xmlhttp = false;
-                        }
-                }
-                return xmlhttp;
-        }
-
-        var http = getHTTPObject()
-        http.open("GET", scriptFile, false)
-        http.send(null);
-
-        if (http.readyState == 4) 
-        {
-                var strResponse = http.responseText;
-                //var strResponse = http.responseXML;
-                switch (http.status) 
-                {
-                        case 404: // Page-not-found error
-                                alert('Error: Not Found. The requested function could not be found.');
-                                break;
-                        case 500: // Display results in a full window for server-side errors
-                                alert(strResponse);
-                                break;
-                        default:
-                                __fileContent = strResponse ;
-                                // IE functions will become delagates of the instance of Worker
-                                eval( __fileContent ) ;
-                                
-                                //at this point we now have:
-                                //a delagate "onmessage(event)"
-                                
-                                break;
-                }
-        }
-        */
-        new Ajax.Request(scriptFile, {
-            onSuccess: function(response) {
-                __fileContent = response.responseText ;
-                // IE functions will become delagates of the instance of Worker
-                eval( response.responseText ) ;
-            }
-        });
-        
-        self.importScripts = function(src)
-        {
-                // hack time, this will import the script but not wait for it to load...
-                var script = document.createElement("SCRIPT") ;
-                script.src = src ;
-                script.setAttribute( "type", "text/javascript" ) ;
-                document.getElementsByTagName("HEAD")[0].appendChild(script)
-                return true ;
-        } ;
-
-        return true ;
-    } ;
+    return {Re:Re, Im:Im};
 }
 
+function ZMakeCopy(z)
+{
+    return {Re:z.Re,Im:z.Im};
+}
+
+function ZModulus(z)
+{
+    return Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
+}
+
+function ZArg(z)
+{
+    return (z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0;
+}
+
+function ZArgInDegrees(z)
+{
+    return ZArg(z) * (360/(2*Math.PI));
+}
+
+function ZDivide(z, divisor)
+{
+    var a = z.Re;
+    var b = z.Im;
+    // (a + jb)/(c + jd) = (a + jb)(c - jd) / (c + jd)(c - jd)
+    // ( ac + jbc - jad + bd) / (cc + dd)
+    // ( ac + bd )/ (cc + dd) + ( jbc -jad) / (cc + dd)
+    var c = ( (a * divisor.Re)          + (b * divisor.Im) ) /
+              ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im) );
+    var d = ( ((b * divisor.Re)         - (a * divisor.Im)) /
+              ( (divisor.Re * divisor.Re)  + (divisor.Im * divisor.Im)) );
+    return ZMake(c, d);
+}
+
+function ZMultiply(z, factor)
+{
+    // (a + jb) (c + jd) = ac + jad + jbc - bd
+    var a = z.Re;
+    var b = z.Im;
+    var c = (a * factor.Re) - (b * factor.Im);
+    var d = (a * factor.Im) + (b * factor.Re);
+    return ZMake(c, d);
+}
+
+function ZAdd(z, term)
+{
+    return ZMake( z.Re + term.Re, z.Im + term.Im);
+}
+
+function ZSubtract(z, term)
+{
+    return ZMake( z.Re - term.Re, z.Im - term.Im);
+}
+
+// Component Helper Methods
+function CurrentSourceMake(pin1, pin2, magnitude, phase)
+{
+    // current flows opposite to convention of voltage +/-
+    return {type:'I',
+            magnitude:pF(magnitude),
+            phase:pF(phase),
+            pins: new Array(pI(pin1), pI(pin2)),
+            admittance: ZMake(-1.0 * magnitude * Math.cos(phase), -1.0 * magnitude * Math.sin(phase))
+            //impedance: ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase));
+            };
+}
+
+function CurrentSourceAdmittanceAtOmega(isrc, omega)
+{
+    return isrc.admittance;
+}
+
+function VoltageSourceMake(pin1, pin2, magnitude, phase)
+{
+    return {type:'V',
+            magnitude:pF(magnitude),
+            phase:pF(phase),
+            pins: new Array(pI(pin1), pI(pin2)),
+            admittance: ZMake(magnitude * Math.cos(phase), magnitude * Math.sin(phase))
+            };
+}
+
+function VoltageSourceAdmittanceAtOmega(vsrc, omega)
+{
+    return vsrc.admittance;
+}
+
+function ProbeMake(pin)
+{
+    return {pin: pin};
+}
+
+function ResistorMake(pin1, pin2, value)
+{
+    return {type: 'R',
+            value: pF(value),
+            pins: new Array(pI(pin1), pI(pin2)),
+            // Zr = R
+            //impedance : ZMake(value, 0.0),
+            admittance : ZMake(1.0 / pF(value), 0.0)
+        };
+}
+
+function ResistorAdmittanceAtOmega(res, omega)
+{
+    return res.admittance;
+}
+
+function CapacitorMake(pin1, pin2, value)
+{
+    return {type: 'C',
+            value: pF(value),
+            pins: new Array(pI(pin1), pI(pin2)),
+            // Zc = 1/jwC
+            //impedance : this.ZMake(0.0, 1.0 / value),
+            admittance : ZMake(0.0, pF(value))
+        };
+}
+
+function CapacitorAdmittanceAtOmega(cap, omega)
+{
+    var a = ZMakeCopy(cap.admittance);
+    a.Im *= omega;
+    return a;
+}
+
+function InductorMake(pin1, pin2, value)
+{
+    return {type: 'L',
+            value: pF(value),
+            pins: new Array(pI(pin1), pI(pin2)),
+            // Zl = jwL
+            //impedance : ZMake(0.0, value),
+            admittance : ZMake(0.0, - 1.0 / pF(value))
+        };
+}
+
+function InductorAdmittanceAtOmega(ind, omega)
+{
+    var a = ZMakeCopy(ind.admittance);
+    a.Im *= 1.0/omega;
+    return a;
+}
+
+// http://mysite.verizon.net/res148h4j/javascript/script_gauss_elimination5.html
+// convert matrix [A] to upper diagonal form
+function eliminate (A)
+{
+    var i, j, k,
+        N = A.length;
+    for (i = 0; i < N; i++)
+    {
+        // find row with maximum in column i
+        var max_row = i;
+        for (j = i; j < N; j++)
+        {
+            if (ZModulus(A[j][i]) > ZModulus(A[max_row][i]))
+                max_row = j;
+        }
+        // swap max row with row i of [A:y]
+        for (k = i; k < N + 1; k++)
+        {
+            var tmp       = ZMakeCopy(A[i][k]);
+            A[i][k]       = A[max_row][k];
+            A[max_row][k] = tmp;
+        }
+
+        // eliminate lower diagonal elements of [A]
+        for (j = i + 1; j < N; j++)
+        {
+            for (k = N; k > i; k--)
+            {
+                if (A[i][i].Re == 0.0 && A[i][i].Im == 0.0)
+                    return false;
+                else
+                {
+                    if (!A[j][i])
+                        A[j][i] = ZMake(0.0,0.0);
+                    if (!A[i][k])
+                        A[i][k] = ZMake(0.0,0.0);
+                    if (!A[j][k])
+                        A[j][k] = ZMake(0.0,0.0);
+
+                    A[j][k] = ZSubtract(A[j][k], ZMultiply(A[i][k], ZDivide(A[j][i], A[i][i])));
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+// compute the values of vector x starting from the bottom
+function substitute(A)
+{
+    var j, k,
+        N = A.length;
+    X = new Array(A.length);
+    for (j = 0; j < A.length; j++)
+        X[j] = ZMake(0.0,0.0);
+
+    for (j = N - 1; j >= 0; j--)
+    {
+        var sum = ZMake(0.0,0.0);
+        for (k = j + 1; k < N; k++)
+        {
+            A[j][k] = ZMultiply(A[j][k], X[k]);
+            sum = ZAdd(sum, A[j][k]);
+        }
+
+        X[j] = ZDivide(ZSubtract(A[j][N], sum), A[j][j]);
+    }
+    return X;
+}
+
+function GaussianElimination(matrix)
+{
+    if (eliminate (matrix))
+        X = substitute(matrix);
+    else
+        throw "Singular matrix in Gaussian Elimination! Your node numbers must be sequential without gaps.";
+    return X;
+}
+
+function ParseSimpleFormatCircuitFromString (source)
+{
+    // FIXME: can we have values use (p,n,u,m,K,M,G,T)
+    var er = [],
+        lines = source.split("\n"),
+        count = lines.length,
+        c = {
+            simulationinfo: {steps:0, startFrequency: 0, endFrequency: 0},
+            components: [],
+            p: []
+        },
+        i = 0;
+
+    for (; i < count; i++)
+    {
+        if (lines[i] == "" || lines[i].match(/^\s*$/))
+        {
+
+        }
+        else if (lines[i].match(components))
+        {
+            var r = RegExp;
+            switch (r.$1)
+            {
+                case 'R': case 'r':
+                    c.components.push(ResistorMake(r.$2, r.$3, r.$4));
+                    break;
+                case 'C': case 'c':
+                    c.components.push(CapacitorMake(r.$2, r.$3, r.$4));
+                    break;
+                case 'L': case 'l':
+                    c.components.push(InductorMake(r.$2, r.$3, r.$4));
+                    break;
+            }
+        }
+        else if (lines[i].match(sources))
+        {
+            var r = RegExp;
+            switch (r.$1)
+            {
+                case 'I': case 'i':
+                    //c.currentsources.push(CurrentSourceMake(RegExp.$2, RegExp.$3, RegExp.$4, RegExp.$5))
+                    c.components.push(CurrentSourceMake(r.$2, r.$3, r.$4, r.$5));
+                    break;
+                case 'V': case 'v':
+                    c.components.push(VoltageSourceMake(r.$2, r.$3, r.$4, r.$5));
+                    break;
+            }
+        }
+        else if (lines[i].match(simulationinfo))
+        {
+            var r = RegExp;
+            c.simulationinfo.steps = pI(r.$1);
+            c.simulationinfo.startFrequency = pF(r.$2);
+            c.simulationinfo.endFrequency = pF(r.$3);
+        }
+        else if (lines[i].match(probelocations))
+        {
+            c.p.push(ProbeMake(RegExp.$1));
+        }
+        else if (lines[i].match(endcommand))
+        {
+            // stop parsing
+            break;
+        }
+        else if (lines[i].match(comment))
+        {
+            // ignore
+        }
+        else
+        {
+            er.push({line: i});
+        }
+    }
+
+    return {e: er, c: c};
+}
+
+function Analyse (parseResult)
+{
+
+    if (parseResult.e.length != 0)
+    {
+        return {error:"Circuit failed to parse!"};
+    }
+
+    var result = [],
+        circuit = parseResult.c,
+        count = circuit.components.length,
+        maxNode = 0,
+        i = 0;
+
+    // get max nodes
+    for (; i < count; i++)
+    {
+        var pin1 = circuit.components[i].pins[0],
+            pin2 = circuit.components[i].pins[1];
+        if (pin1 == pin2)
+            return {error:"Components cannot have their pins connected to the same node"};
+        if (pin1 > maxNode)
+            maxNode = pin1;
+        if (pin2 > maxNode)
+            maxNode = pin2;
+    }
+
+    // create matrix
+    var linearEquations = [];
+    for (var node = 0; node < maxNode; node++)
+    {
+        linearEquations[node] = [];
+        for (var unknown = 0; unknown < maxNode+1; unknown++)
+        {
+            linearEquations[node][unknown] = {input:[], output:[]};
+        }
+
+        // For all components
+        for (var componentindex = 0; componentindex < count; componentindex++)
+        {
+            // We subtract 1 as the 0 node is assumed to be the reference node and does not have equs built for it
+            var component = circuit.components[componentindex],
+                pin1 = component.pins[0] - 1,
+                pin2 = component.pins[1] - 1;
+
+            if (pin1 != node && pin2 != node) // if component connected to this node
+                continue;
 
 
+            // TODO: optimise this to remove duplication
+            if (pin1 == node)
+            {
+                if (component.type == 'I')
+                {
+                    // TODO Check wether this orientation is correct otherwise we will get inverted results
+                    linearEquations[pin1][maxNode].input.push(component);
+                }
+                else
+                {
+                    linearEquations[pin1][pin1].input.push(component);
+                    if (pin2 >= 0)
+                        linearEquations[pin1][pin2].output.push(component);
+                }
+            }
+            else if (pin2 == node)
+            {
+                if (component.type == 'I')
+                {
+                    linearEquations[pin2][maxNode].output.push(component);
+                }
+                else
+                {
+                    linearEquations[pin2][pin2].input.push(component);
+                    if (pin1 >= 0)
+                        linearEquations[pin2][pin1].output.push(component);
+                }
+            }
+        }
+    }
+    // Solve
+    var frequency = circuit.simulationinfo.startFrequency,
+        fstep =  (circuit.simulationinfo.endFrequency - circuit.simulationinfo.startFrequency) / circuit.simulationinfo.steps,
+        step = 0,
+        matrix = new Array(linearEquations.length);
 
-// *****************************************************************************
+    for (; step < circuit.simulationinfo.steps; step++)
+    {
+        var omega = 2 * Math.PI * frequency,
+            equ = 0,
+            node = 0,
+            component = 0;
+
+        for (; equ < linearEquations.length; equ++)
+        {
+            matrix[equ] = new Array(linearEquations[equ].length);
+            for (node = 0; node < linearEquations[equ].length; node++)
+            {
+                if (!matrix[equ][node])
+                    matrix[equ][node] = ZMake(0.0, 0.0);
+
+                for (var i = 0; i < linearEquations[equ][node].input.length; i++)
+                {
+                    var component = linearEquations[equ][node].input[i];
+                    switch (component.type)
+                    {
+                        //case 'V':
+                        //    matrix[equ][node] = ZAdd(matrix[equ][node], VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
+                        //    break;
+                        case 'I':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], CurrentSourceAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'R':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], ResistorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'L':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], InductorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'C':
+                            matrix[equ][node] = ZAdd(matrix[equ][node], CapacitorAdmittanceAtOmega(component, omega));
+                            break;
+                    }
+                }
+                for (var o = 0; o < linearEquations[equ][node].output.length; o++)
+                {
+                    var component = linearEquations[equ][node].output[o];
+                    switch (component.type)
+                    {
+                        //case 'V':
+                            // according to uni code
+                        //    break;
+                        case 'I':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], CurrentSourceAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'R':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], ResistorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'L':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], InductorAdmittanceAtOmega(component, omega));
+                            break;
+                        case 'C':
+                            matrix[equ][node] = ZSubtract(matrix[equ][node], CapacitorAdmittanceAtOmega(component, omega));
+                            break;
+                    }
+                }
+            }
+        }
+
+        //return matrix;
+        // solve matrix
+        result[step] = {s: GaussianElimination(matrix),f: frequency, o: omega};
+        frequency += fstep;
+    }
+
+    return {r:result, c:circuit};
+};
+/*
+self.addEventListener('message', function (event)
+{
+    this.postMessage(Analyse(ParseSimpleFormatCircuitFromString(event.data)));
+}, false);
+*//*
+onmessage = function(event)
+{
+    postMessage(JSON.stringify(Analyse(ParseSimpleFormatCircuitFromString(event.data))));
+}
+*/
+
+function lEx(ex)
+{
+    var d = $('cir');
+    switch (ex)
+    {
+        case 0:
+            d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
+            break;
+        case 1:
+            d.value = "# More complex example.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
+            break;
+        case 2:
+            d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
+            break;
+    }
+}
+var statusTimer;
+function sS(message)
+{
+    $('sT').innerHTML = message;
+    $('sT').style.visibility = 'visible';
+    if (statusTimer) clearInterval(statusTimer);
+    statusTimer = setInterval('$("sT").style.visibility = "hidden";', 3000);
+}
 
 // FIXME: reg exp replacement to shrink coord array or offset everything by 20
 function drawElement(canvas,type,rot,value)
 {
     var cx = canvas.getContext("2d"),
         i = 0,
-        index = {r:0,c:25,l:45,s:70,p:85,g:94,h:114,h:114,v:119,k:124,t:131,x:141},
+        index = {'r':0,'c':25,'l':45,'s':70,'p':85,'g':94,'h':114,'v':119,'k':124,'t':131,'x':141},
         a = 20, b = 25, c = 30, d = 50,
         coords = [
                     0,b,5,b,7.5,c,12.5,a,17.5,c,22.5,a,27.5,c,32.5,a,37.5,c,42.5,a,45,b,50,b,'e',
@@ -221,15 +588,15 @@ function drawElement(canvas,type,rot,value)
 /// FIXME: optims, make a global for document.cEd.cir, i, j 'var' everywhere
 
 function HighlightAndSyntaxCheckSimpleSource(source)
-{    
+{
     // FIXME: can we have values use (p,n,u,m,K,M,G,T)
-    var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
+    /*var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
         sources =           /^\s*([VI])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
         simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
         probelocations =    /^\s*P\s+([\d]+)\s*$/i,
         endcommand =        /^\s*E\s*$/i, 
-        comment =           /^\s*#(.*)$/,
-        highlightedSource = 'Zid="sCs" X"big" style="top:-45px">J<p>',
+        comment =           /^\s*#(.*)$/,*/
+    var    highlightedSource = 'Zid="sCs" X"big" style="top:-45px">J<p>',
         errors = new Array(),
         lines = source.split("\n"),
         count = lines.length,
@@ -342,7 +709,7 @@ function drop(target, e)
         if (id.match(fromToolbox))
         {
             //console.log('add')
-            var id = parseInt(RegExp.$1),
+            var id = pI(RegExp.$1),
                 child = cim[id].clone(),
                 n = child.getAttribute('e'),
                 value = -1;
@@ -723,7 +1090,7 @@ function aC()
     if (cS())
     {
         sS("Analysing...");
-        var analysisworker = new Worker('src/AnalyseCircuit.js');
+        /*var analysisworker = new Worker('src/AnalyseCircuit.js');
         //var analysisworker = new Worker('src/ac.js');
         
         //analysisworker.addEventListener('message', function (event) 
@@ -751,37 +1118,28 @@ function aC()
 
         // post a string
         analysisworker.postMessage($('cir').value);
+        */
+        var analysed = Analyse(ParseSimpleFormatCircuitFromString($('cir').value));
         
+        if (analysed.error !== undefined)
+            sS("Error: " + analysed.error);
+        else
+        {
+            sS("Graphing...");
+            //console.log(analysed);
+            drawGraphs(analysed);
+            sS('Done. Click <a href="#graphs">here</a> to see the graphs!');
+        }
         return true;
     }
     else
         return false;
 }
 
-function lEx(ex)
-{
-    var d = $('cir');
-    switch (ex)
-    {
-        case 0:
-            d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
-            break;
-        case 1:
-            d.value = "# More complex example.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
-            break;
-        case 2:
-            d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
-            break;
-    }
-}
-var statusTimer;
-function sS(message)
-{
-    $('sT').innerHTML = message;
-    $('sT').style.visibility = 'visible';
-    if (statusTimer) clearInterval(statusTimer);
-    statusTimer = setInterval('$("sT").style.visibility = "hidden";', 3000);
-}
+window['aC'] = aC;
+window['cS'] = cS;
+window['sS'] = sS;
+window['lEx'] = lEx;
 
 onload = function () 
 {
