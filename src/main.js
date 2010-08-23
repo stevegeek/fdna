@@ -298,19 +298,21 @@ function ParseSimpleFormatCircuitFromString (source)
         }
         else if (lines[i].match(components))
         {
-            var r = RegExp;
+            var r = RegExp,
+                component;
             switch (r.$1)
             {
                 case 'R': case 'r':
-                    c.components.push(ResistorMake(r.$2, r.$3, r.$4));
+                    component = ResistorMake(r.$2, r.$3, r.$4);
                     break;
                 case 'C': case 'c':
-                    c.components.push(CapacitorMake(r.$2, r.$3, r.$4));
+                    component = CapacitorMake(r.$2, r.$3, r.$4);
                     break;
                 case 'L': case 'l':
-                    c.components.push(InductorMake(r.$2, r.$3, r.$4));
+                    component = InductorMake(r.$2, r.$3, r.$4);
                     break;
             }
+            c.components.push(component);
         }
         else if (lines[i].match(sources))
         {
@@ -445,7 +447,8 @@ function Analyse (parseResult)
         var omega = 2 * Math.PI * frequency,
             equ = 0,
             node = 0,
-            component = 0;
+            component = 0,
+            val;
 
         for (; equ < linearEquations.length; equ++)
         {
@@ -464,18 +467,19 @@ function Analyse (parseResult)
                         //    matrix[equ][node] = ZAdd(matrix[equ][node], VoltageSourceAdmittanceAtOmega(linearEquations[equ][node][component], omega));
                         //    break;
                         case 'I':
-                            matrix[equ][node] = ZAdd(matrix[equ][node], CurrentSourceAdmittanceAtOmega(component, omega));
+                            val = CurrentSourceAdmittanceAtOmega(component, omega);
                             break;
                         case 'R':
-                            matrix[equ][node] = ZAdd(matrix[equ][node], ResistorAdmittanceAtOmega(component, omega));
+                            val = ResistorAdmittanceAtOmega(component, omega);
                             break;
                         case 'L':
-                            matrix[equ][node] = ZAdd(matrix[equ][node], InductorAdmittanceAtOmega(component, omega));
+                            val = InductorAdmittanceAtOmega(component, omega);
                             break;
                         case 'C':
-                            matrix[equ][node] = ZAdd(matrix[equ][node], CapacitorAdmittanceAtOmega(component, omega));
+                            val = CapacitorAdmittanceAtOmega(component, omega);
                             break;
                     }
+                    matrix[equ][node] = ZAdd(matrix[equ][node], val);
                 }
                 for (var o = 0; o < linearEquations[equ][node].output.length; o++)
                 {
@@ -486,18 +490,19 @@ function Analyse (parseResult)
                             // according to uni code
                         //    break;
                         case 'I':
-                            matrix[equ][node] = ZSubtract(matrix[equ][node], CurrentSourceAdmittanceAtOmega(component, omega));
+                            val = CurrentSourceAdmittanceAtOmega(component, omega);
                             break;
                         case 'R':
-                            matrix[equ][node] = ZSubtract(matrix[equ][node], ResistorAdmittanceAtOmega(component, omega));
+                            val = ResistorAdmittanceAtOmega(component, omega);
                             break;
                         case 'L':
-                            matrix[equ][node] = ZSubtract(matrix[equ][node], InductorAdmittanceAtOmega(component, omega));
+                            val = InductorAdmittanceAtOmega(component, omega);
                             break;
                         case 'C':
-                            matrix[equ][node] = ZSubtract(matrix[equ][node], CapacitorAdmittanceAtOmega(component, omega));
+                            val = CapacitorAdmittanceAtOmega(component, omega);
                             break;
                     }
+                    matrix[equ][node] = ZSubtract(matrix[equ][node], val);
                 }
             }
         }
@@ -582,7 +587,10 @@ function drawElement(canvas,type,rot,value)
     }
     cx.stroke();
     if(value > 0) cx.fillText(""+value, 10, 10);
-    if(rot) cx.rotate(1.57);
+    /*switch(rot)
+    case 1: cx.rotate(1.57); break;
+    case -1:*/
+    // rot = 90, 270, 180 (flip)
 }
 
 /// FIXME: optims, make a global for document.cEd.cir, i, j 'var' everywhere
@@ -621,8 +629,7 @@ function HighlightAndSyntaxCheckSimpleSource(source)
             highlightedSource += 'ZX"cm">&#35; '+RegExp.$1+'JB';
         else
         {
-            errors.push({line: i})
-            highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
+            errors.push({line: i}), highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
         }
     }
     
@@ -718,7 +725,7 @@ function drop(target, e)
             child.setAttribute('id', n);
             
             // FIXME: ROTATION NEEDED
-            drawElement(child,child.getAttribute('e'),0,value);
+            drawElement(child,child.getAttribute('e'),child.getAttribute('rot'),value);
             
             target.appendChild(child);
         }
@@ -748,7 +755,7 @@ function drawCircuitEditor()
         var a = griddiv.clone();
         a.setAttribute('id',"tb"+i);
         c = cim[i].clone();
-        drawElement(c,c.getAttribute('e'),0,-1);
+        drawElement(c,c.getAttribute('e'),c.getAttribute('rot'),-1);
         a.appendChild(c);
         $('tbx').appendChild(a);
     }
@@ -1140,6 +1147,9 @@ window['aC'] = aC;
 window['cS'] = cS;
 window['sS'] = sS;
 window['lEx'] = lEx;
+window['cTx'] = cTx;
+window['drag'] = drag;
+window['drop'] = drop;
 
 onload = function () 
 {
