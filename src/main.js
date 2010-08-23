@@ -557,7 +557,7 @@ function drawElement(canvas,type,rot,value)
 {
     var cx = canvas.getContext("2d"),
         i = 0,
-        index = {'r':0,'c':25,'l':45,'s':70,'p':85,'g':94,'h':114,'v':119,'k':124,'t':131,'x':141},
+        index = {'r':0,'c':25,'l':45,'s':72,'p':87,'g':96,'h':116,'v':121,'k':126,'t':133,'x':143},
         a = 20, b = 25, c = 30, d = 50,
         coords = [
                     0,b,5,b,7.5,c,12.5,a,17.5,c,22.5,a,27.5,c,32.5,a,37.5,c,42.5,a,45,b,50,b,'e',
@@ -573,6 +573,7 @@ function drawElement(canvas,type,rot,value)
                     b,50,b,0,'m',0,b,50,b,'e'
                  ],
         t = index[type.charAt(0)];
+
     //canvas.width = canvas.width;
     cx.beginPath();
     cx.moveTo(coords[t],coords[1+t]);
@@ -585,12 +586,16 @@ function drawElement(canvas,type,rot,value)
         else
             cx.lineTo(coords[i+t]+.5,coords[i+1+t]+.5),i+=2;
     }
-    cx.stroke();
+    cx.stroke(); 
+
     if(value > 0) cx.fillText(""+value, 10, 10);
-    /*switch(rot)
-    case 1: cx.rotate(1.57); break;
-    case -1:*/
-    // rot = 90, 270, 180 (flip)
+    // rot = 90, 180 (flip), 270, 
+    switch(rot) {
+    case 1: canvas.rotate(1.57); break;
+    case 2: canvas.rotate(3.14); break;
+    case 3: canvas.rotate(4.17); break;
+    }
+
 }
 
 /// FIXME: optims, make a global for document.cEd.cir, i, j 'var' everywhere
@@ -676,7 +681,7 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
 // FIXME: remove src and class
 var imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2,r:-2,b:-2,l:-1F,AglBC-2,r:-2,b:-2,l:0F,ArvBCZAlvBCZAcvBCZAsvBC-1,r:-2,b:-1,l:-2F,AptBC-1,r:-2,b:-2,l:-2}),AgtBC0,r:-2,b:-2,l:-2}),AvBCZAkbrBC-2,r:-1,b:-1,l:-2}),AktlBC-1,r:-2,b:-2,l:-1GAktrBC-1,r:-1,b:-2,l:-2F,AkblBC-2,r:-2,b:-1,l:-1HAtrBC-1,r:-1,b:-1,l:-2}),AtlBC-1,r:-2,b:-1,l:-1GAttBC-1,r:-1,b:-2,l:-1F,AtbBC-2,r:-1,b:-1,l:-1HAxBC-1,r:-1,b:-1,l:-1F];',
     imgSearch = 'ABCDZFGH',
-    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'class':'rot'}),", ", 'class':'rot'})",", 'class':'f'}),", ", 'class':'frot'}),"];
+    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'rot':1}),", ", 'rot':1})",", 'rot':3}),", ", 'rot':2}),"];
 
     for (i=0; i < imgSearch.length; i++)
         imgCode = imgCode.replace(RegExp(imgSearch.charAt(i),'g'), imgReplace[i]);
@@ -975,84 +980,112 @@ function drawGraphs(data)
 {
     // remove previous graphs
     var graphs = $('plots').select('canvas.graph'),
-        probes = (typeof data.c.p == 'string') ? (JSON.parse(data.c.p)):(data.c.p),
-        stepanalysis = (typeof data.r == 'string') ? (JSON.parse(data.r)) : (data.r),
+        siminfo = data.c.simulationinfo,
+        probes = data.c.p,//(typeof data.c.p == 'string') ? (JSON.parse(data.c.p)):(data.c.p),
+        stepanalysis = data.r, //(typeof data.r == 'string') ? (JSON.parse(data.r)) : (data.r),
         i = 0;
-            
+
     for (; i < graphs.length; i++)
         graphs[i].remove();
 
     for (i = 0; i < probes.length; i++)
     {
-        var w = 500,
-            h = 300,
-            node = probes[i].pin - 1,
-            c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
-            context = c.getContext("2d");
+        for (var gc = 0; gc < 2; gc++)
+        {
+            var w = 600,
+                h = 300,
+                oxs = 120.5,
+                oxe = w - 30.5,
+                oys = 30.5,
+                oye = h - 30.5,
+                bottomoffset = 10,
+                topoffset = 10,
+                //plotareax = 438,
+                //plotareay = 218,
+                graphoffsetx = oxe-oxs,  // this is the distance difference from the canvas w/h to scale the graph to
+                graphoffsety = oye-oys-bottomoffset-topoffset,
+                node = probes[i].pin - 1,
+                c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
+                context = c.getContext("2d"),
+                context.bp = context.beginPath,
+                context.mt = context.moveTo,
+                content.lt = context.lineTo,
+                context.ft = context.fillText;
 
-        context.lineWidth = 2;
-        context.lineCap = 'round';
-
-        // Mag
-        $('plots').appendChild(c);
-        context.beginPath();
-        context.fillText("Node " + (node+1), 10.5, 10.5);
-        context.moveTo(30.5,30.5);
-        context.lineTo(30.5,h-20.5);
-        context.moveTo(20.5,h-30.5);
-        context.lineTo(w-30.5,h-30.5);
-        context.strokeStyle = "#000";
-        context.stroke();
-        
-        var points = [],
-            datalen = stepanalysis.length,
-            graphoffset = 65,  // this is the distance difference from the canvas w/h to scale the graph to
-            //datalen = solution.length,
-            datastep = (datalen > (w - graphoffset)) ? (datalen / (w - graphoffset)) : 1,
-            axisstep = (datalen < (w - graphoffset)) ? ((w - graphoffset) / datalen) : 1, //(w - 60) / datalen,
-            p = 0;
+            $('plots').appendChild(c);
             
-        // normalise y axis
-        //sol[j].push(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im))); 
-        //sol[j].push((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0);
+            context.beginPath();
+            context.rect(oxs,oys,oxe-oxs,oye-oys);
+            context.fillStyle = "#eee";
+            context.fill();
+            
+            context.strokeStyle = "#000";
+            context.fillStyle = "#000";            
+            context.lineWidth = 2;
+            context.lineCap = 'round';
+            context.lineJoin = 'bevel';
+                        
+            context.beginPath();
+            context.fillText("Node " + (node+1) + ((gc)?" Phase":" Magnitude"), (w-30)/2, 10.5);
 
-        //console.log(datalen)
-        //console.log(datastep)
-        //console.log(axisstep)
+            context.moveTo(oxs,oys);
+            context.lineTo(oxs,oye+10);
+            context.moveTo(oxs-10,oye);
+            context.lineTo(oxe,oye);
+
+            context.stroke();
         
-        var maxval = -10000.0, minval = 10000.0;
-        for (p = 0; p < datalen; p++)
-        {
-            var z = stepanalysis[p].s[node];
-            points[p] = Math.sqrt((z.Re*z.Re) + (z.Im*z.Im));
-            if (points[p] > maxval)
-                maxval = points[p];
-            if (points[p] < minval)
-                minval = points[p];
+            var points = [],
+                datalen = stepanalysis.length,
+                //datalen = solution.length,
+                datastep = (datalen > graphoffsetx) ? (datalen / graphoffsetx) : 1,
+                axisstep = (datalen < graphoffsetx) ? (graphoffsetx / datalen) : 1, //(w - 60) / datalen,
+                p = 0;
+
+            var maxval = -10000.0, minval = 10000.0;
+            for (p = 0; p < datalen; p++)
+            {
+                var z = stepanalysis[p].s[node];
+                //points[p] = (gc)?((z.Re !== 0.0) ? Math.atan(z.Im/z.Re) : 0.0):(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im)));
+                points[p] = (gc)?(Math.atan(z.Im/z.Re)):(Math.sqrt((z.Re*z.Re) + (z.Im*z.Im)));
+                if (points[p] > maxval)
+                    maxval = points[p];
+                if (points[p] < minval)
+                    minval = points[p];
+            }
+            var diff = maxval - minval;
+            for (p = 0; p < datalen; p++)
+            {
+                points[p] -= minval;
+                if (diff) points[p] /= diff;
+                
+            }
+            
+            context.lineWidth = 1;
+            context.beginPath();
+
+            context.moveTo(oxs,oye);
+            var s = 0;
+            for (p = 0; p < datalen / datastep; p+=datastep)
+            {    
+                //console.log(points[Math.round(p)])
+                context.lineTo(oxs+(axisstep*s), oye - bottomoffset - (points[Math.round(p)]*graphoffsety));//(h-graphoffset)));   
+                s++;
+            }
+            // ticks
+            for (p = 0; p < 5; p++)
+            {
+                var yv = oye - bottomoffset - ((p/4)*graphoffsety),
+                    xv = oxe - ((p/4)*graphoffsetx);
+                context.moveTo(oxs - 8, yv);
+                context.lineTo(oxs, yv);
+                context.fillText(minval+((diff/5)*p),5.5,yv);
+                context.moveTo(xv, oye + 8);
+                context.lineTo(xv, oye);
+                context.fillText(siminfo.startFrequency+(((siminfo.endFrequency-siminfo.startFrequency)/5)*p),xv,(h-5.5));
+            }
+            context.stroke();
         }
-        //console.log(points)
-        //console.log(minval)
-        //console.log(maxval)
-        //return
-        for (p = 0; p < datalen; p++)
-        {
-            points[p] = (points[p] - minval) / (maxval - minval);
-            //points[p] /= maxval;
-        }
-        //console.log(points)
-        // plot mag
-        context.lineWidth = 1;
-        context.beginPath();
-        context.lineJoin = 'bevel';
-        context.moveTo(30.5,h-30.5);
-        var s = 0;
-        for (p = 0; p < datalen / datastep; p+=datastep)
-        {    
-            //console.log(points[p])
-            context.lineTo(30.5+(axisstep*s), (h-30.5) - (points[Math.round(p)]*(h-graphoffset)));   
-            s++;
-        }
-        context.stroke();
     }
 }
 
@@ -1097,35 +1130,7 @@ function aC()
     if (cS())
     {
         sS("Analysing...");
-        /*var analysisworker = new Worker('src/AnalyseCircuit.js');
-        //var analysisworker = new Worker('src/ac.js');
-        
-        //analysisworker.addEventListener('message', function (event) 
-        analysisworker.onmessage = function (event)
-        {
-            //console.log(event.data)
-            var analysed = JSON.parse(event.data);
-            
-            
-            // FIXME: deprecate .error in replace of a throw in the worker
-            if (analysed.error !== undefined)
-                sS("Error: " + analysed.error);
-            else
-            {
-                sS("Graphing...");
-                //console.log(analysed);
-                drawGraphs(analysed);
-                sS('Done. Click <a href="#graphs">here</a> to see the graphs!');
-            }
-        };
-        analysisworker.onerror = function (error)
-        {
-            sS("The web Worker reports an error: " + error.message);
-        };
 
-        // post a string
-        analysisworker.postMessage($('cir').value);
-        */
         var analysed = Analyse(ParseSimpleFormatCircuitFromString($('cir').value));
         
         if (analysed.error !== undefined)
