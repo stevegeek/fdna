@@ -229,12 +229,12 @@ function eliminate (A)
                     return false;
                 else
                 {
-                    if (!A[j][i])
+                    /*if (!A[j][i])
                         A[j][i] = ZMake(0.0,0.0);
                     if (!A[i][k])
                         A[i][k] = ZMake(0.0,0.0);
                     if (!A[j][k])
-                        A[j][k] = ZMake(0.0,0.0);
+                        A[j][k] = ZMake(0.0,0.0);*/
 
                     A[j][k] = ZSubtract(A[j][k], ZMultiply(A[i][k], ZDivide(A[j][i], A[i][i])));
                 }
@@ -276,11 +276,53 @@ function GaussianElimination(matrix)
         throw "Singular matrix in Gaussian Elimination! Your node numbers must be sequential without gaps.";
     return X;
 }
+/*
+function HighlightAndSyntaxCheckSimpleSource(source)
+{
+    // FIXME: can we have values use (p,n,u,m,K,M,G,T)
+    var    highlightedSource = 'Zid="sCs" X"big" style="top:-45px">J<p>',
+        errors = new Array(),
+        lines = source.split("\n"),
+        count = lines.length,
+        i = 0;
 
+    for (; i < count; i++)
+    {
+        highlightedSource += 'ZX"ln">'+i+'.J';
+        if (lines[i] == "" || lines[i].match(/^\s*$/))
+            highlightedSource += 'B';
+        else if (lines[i].match(components))
+            highlightedSource += 'ZXK'+RegExp.$1+'JZXN'+RegExp.$2+'JZXN'+RegExp.$3+'JZXY'+RegExp.$4+'JB';
+        else if (lines[i].match(sources))
+            highlightedSource += 'ZXK'+RegExp.$1+'JZXN'+RegExp.$2+'JZXN'+RegExp.$3+'JZXY'+RegExp.$4+'JZXY'+RegExp.$5+'JB';
+        else if (lines[i].match(simulationinfo))
+            highlightedSource += 'ZXKFJZXY'+RegExp.$1+'JZXY'+RegExp.$2+'JZXY'+RegExp.$3+'JB';
+        else if (lines[i].match(probelocations))
+            highlightedSource += 'ZXKPJZXN'+RegExp.$1+'JB';
+        else if (lines[i].match(endcommand))
+            highlightedSource += 'ZXKEJB';
+        else if (lines[i].match(comment))
+            highlightedSource += 'ZX"cm">&#35; '+RegExp.$1+'JB';
+        else
+        {
+            errors.push({line: i}), highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
+        }
+    }
+    
+    var search = 'XZJKNYB',
+        replace = ['class=','<span ','</span>&nbsp;','"ky">', '"nd">', '"vl">', '<br>'];
+
+    for (i=0; i < 7; i++)
+        highlightedSource = highlightedSource.replace(RegExp(search.charAt(i),'g'), replace[i]);
+
+    return {errors: errors, source: highlightedSource + '</p>'};
+}
+*/
 function ParseSimpleFormatCircuitFromString (source)
 {
     // FIXME: can we have values use (p,n,u,m,K,M,G,T)
     var er = [],
+        highlightedSource = 'Zid="sCs" X"big" style="top:-45px">J<p>',
         lines = source.split("\n"),
         count = lines.length,
         c = {
@@ -292,14 +334,16 @@ function ParseSimpleFormatCircuitFromString (source)
 
     for (; i < count; i++)
     {
+        highlightedSource += 'ZX"ln">'+i+'.J';
         if (lines[i] == "" || lines[i].match(/^\s*$/))
         {
-
+            highlightedSource += 'B';
         }
         else if (lines[i].match(components))
         {
             var r = RegExp,
                 component;
+            highlightedSource += 'ZXK'+r.$1+'JZXN'+r.$2+'JZXN'+r.$3+'JZXY'+r.$4+'JB';
             switch (r.$1)
             {
                 case 'R': case 'r':
@@ -317,6 +361,7 @@ function ParseSimpleFormatCircuitFromString (source)
         else if (lines[i].match(sources))
         {
             var r = RegExp;
+            highlightedSource += 'ZXK'+r.$1+'JZXN'+r.$2+'JZXN'+r.$3+'JZXY'+r.$4+'JZXY'+r.$5+'JB';
             switch (r.$1)
             {
                 case 'I': case 'i':
@@ -331,30 +376,42 @@ function ParseSimpleFormatCircuitFromString (source)
         else if (lines[i].match(simulationinfo))
         {
             var r = RegExp;
+            highlightedSource += 'ZXKFJZXY'+r.$1+'JZXY'+r.$2+'JZXY'+r.$3+'JB';
             c.simulationinfo.steps = pI(r.$1);
             c.simulationinfo.startFrequency = pF(r.$2);
             c.simulationinfo.endFrequency = pF(r.$3);
         }
         else if (lines[i].match(probelocations))
         {
+            highlightedSource += 'ZXKPJZXN'+RegExp.$1+'JB';
             c.p.push(ProbeMake(RegExp.$1));
         }
         else if (lines[i].match(endcommand))
         {
             // stop parsing
+            highlightedSource += 'ZXKEJB';
             break;
         }
         else if (lines[i].match(comment))
         {
             // ignore
+            highlightedSource += 'ZX"cm">&#35; '+RegExp.$1+'JB';
         }
         else
         {
+            highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
             er.push({line: i});
         }
     }
+    
+    var search = 'XZJKNYB',
+        replace = ['class=','<span ','</span>&nbsp;','"ky">', '"nd">', '"vl">', '<br>'];
 
-    return {e: er, c: c};
+    for (i=0; i < 7; i++)
+        highlightedSource = highlightedSource.replace(RegExp(search.charAt(i),'g'), replace[i]);
+    
+
+    return {e: er, c: c, source: highlightedSource + '</p>'};
 }
 
 function Analyse (parseResult)
@@ -538,9 +595,9 @@ function lEx(ex)
         case 1:
             d.value = "# More complex example.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
             break;
-        case 2:
-            d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
-            break;
+        //case 2:
+        //    d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
+        //    break;
     }
 }
 var statusTimer;
@@ -600,52 +657,7 @@ function drawElement(canvas,type,rot,value)
 
 /// FIXME: optims, make a global for document.cEd.cir, i, j 'var' everywhere
 
-function HighlightAndSyntaxCheckSimpleSource(source)
-{
-    // FIXME: can we have values use (p,n,u,m,K,M,G,T)
-    /*var components =        /^\s*([LRC])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s*$/i,
-        sources =           /^\s*([VI])\s+([\d]+)\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
-        simulationinfo =    /^\s*F\s+([\d]+)\s+([\d\.E\-+]+)\s+([\d\.E\-+]+)\s*$/i,
-        probelocations =    /^\s*P\s+([\d]+)\s*$/i,
-        endcommand =        /^\s*E\s*$/i, 
-        comment =           /^\s*#(.*)$/,*/
-    var    highlightedSource = 'Zid="sCs" X"big" style="top:-45px">J<p>',
-        errors = new Array(),
-        lines = source.split("\n"),
-        count = lines.length,
-        i = 0;
 
-    for (; i < count; i++)
-    {
-        highlightedSource += 'ZX"ln">'+i+'.J';
-        if (lines[i] == "" || lines[i].match(/^\s*$/))
-            highlightedSource += 'B';
-        else if (lines[i].match(components))
-            highlightedSource += 'ZXK'+RegExp.$1+'JZXN'+RegExp.$2+'JZXN'+RegExp.$3+'JZXY'+RegExp.$4+'JB';
-        else if (lines[i].match(sources))
-            highlightedSource += 'ZXK'+RegExp.$1+'JZXN'+RegExp.$2+'JZXN'+RegExp.$3+'JZXY'+RegExp.$4+'JZXY'+RegExp.$5+'JB';
-        else if (lines[i].match(simulationinfo))
-            highlightedSource += 'ZXKFJZXY'+RegExp.$1+'JZXY'+RegExp.$2+'JZXY'+RegExp.$3+'JB';
-        else if (lines[i].match(probelocations))
-            highlightedSource += 'ZXKPJZXN'+RegExp.$1+'JB';
-        else if (lines[i].match(endcommand))
-            highlightedSource += 'ZXKEJB';
-        else if (lines[i].match(comment))
-            highlightedSource += 'ZX"cm">&#35; '+RegExp.$1+'JB';
-        else
-        {
-            errors.push({line: i}), highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
-        }
-    }
-    
-    var search = 'XZJKNYB',
-        replace = ['class=','<span ','</span>&nbsp;','"ky">', '"nd">', '"vl">', '<br>'];
-
-    for (i=0; i < 7; i++)
-        highlightedSource = highlightedSource.replace(RegExp(search.charAt(i),'g'), replace[i]);
-
-    return {errors: errors, source: highlightedSource + '</p>'};
-}
 
 // t r b and l , if -2 then no connection there, if -1 connection exists but isnt assigned a node value, if other = node value for connection
 /*
@@ -1006,11 +1018,7 @@ function drawGraphs(data)
                 graphoffsety = oye-oys-bottomoffset-topoffset,
                 node = probes[i].pin - 1,
                 c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
-                context = c.getContext("2d"),
-                context.bp = context.beginPath,
-                context.mt = context.moveTo,
-                content.lt = context.lineTo,
-                context.ft = context.fillText;
+                context = c.getContext("2d");
 
             $('plots').appendChild(c);
             
@@ -1062,7 +1070,7 @@ function drawGraphs(data)
             }
             
             context.lineWidth = 1;
-            context.beginPath();
+            //context.beginPath();
 
             context.moveTo(oxs,oye);
             var s = 0;
@@ -1096,9 +1104,9 @@ function cS()
         return true;
     src = $('cir').value;
 
-    var result = HighlightAndSyntaxCheckSimpleSource(src),
+    var result = ParseSimpleFormatCircuitFromString(src),
         errorInfo = "",
-        errs = result.errors;
+        errs = result.e;
     
     if (errs.length)
     {
@@ -1140,7 +1148,7 @@ function aC()
             sS("Graphing...");
             //console.log(analysed);
             drawGraphs(analysed);
-            sS('Done. Click <a href="#graphs">here</a> to see the graphs!');
+            sS('Done, see below!');
         }
         return true;
     }
@@ -1158,8 +1166,8 @@ window['drop'] = drop;
 
 onload = function () 
 {
-    var logo = 'KsJKrJKlJKcJ';
-    $('lG').innerHTML = (logo.replace(/K/g,'<img src="imgs/')).replace(/J/g,'1.png">')
+    //var logo = 'KsJKrJKlJKcJ';
+    //$('lG').innerHTML = (logo.replace(/K/g,'<img src="imgs/')).replace(/J/g,'1.png">')
 
     lEx(0);
     cS();

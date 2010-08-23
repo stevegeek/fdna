@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html><head><title>JS FDNA</title><meta charset="utf-8"><meta name="description" content="Frequency domain analysis of RLC circuits, with a circuit diagram tool, source syntax checking, computation on Web Workers and graphing of results.">
+<html><head><title>JS FDNA</title>
 <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
-<script src="lib/prototype.js"></script><script src="src/main.js"></script><style type="text/css">
+<script src="lib/prototype.js"></script>
+<script src="src/main.js"></script>
+<style type="text/css">
 body{width:850px;margin:0 auto;font:12px Verdana, sans-serif;background:#CFCFCF url('imgs/st4.png') repeat;}
 #cn{margin:15px 0;padding:15px;-webkit-box-shadow:2px 2px 6px #333;-moz-box-shadow:2px 2px 6px #333;border-radius:10px;-moz-border-radius:10px;background-color: #FFF;color: #3B3B3B;}
 .ln{border-right:1px solid #ccc;margin-right:20px;}
@@ -23,25 +25,7 @@ body{width:850px;margin:0 auto;font:12px Verdana, sans-serif;background:#CFCFCF 
       position:relative; top:-4px;left:-9px;
       font-size:50px;
       font-weight:200;
-  }/*
-  .f {
-      -webkit-transform: rotate(-180deg);
-      -moz-transform: rotate(-180deg);
-      transform: rotate(-180deg);
-      filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
   }
-  .frot {
-      -webkit-transform: rotate(-270deg);
-      -moz-transform: rotate(-270deg);
-      transform: rotate(-270deg);
-      filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
-  }
-  .rot {
-        -webkit-transform: rotate(-90deg);
-        -moz-transform: rotate(-90deg);
-        transform: rotate(-90deg);
-        filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
-  }*/
   #tbx
   {
       height:150px;
@@ -55,10 +39,8 @@ body{width:850px;margin:0 auto;font:12px Verdana, sans-serif;background:#CFCFCF 
   }
   #txt
   {
-      /*border-right:2px solid black;*/
       padding:0 30px;
       float:left;
-      /*border:1px solid red;*/
       width:300px;
   }
   #srC
@@ -78,47 +60,39 @@ body{width:850px;margin:0 auto;font:12px Verdana, sans-serif;background:#CFCFCF 
       width:50px; height:50px;
       padding:0;margin:0;
       float:left;
-      text-align:center;
-  }
-  .row
-  {
-      clear:left;
-  }
-  #sT
-  {
-      visibility:hidden;
-      text-align:center;
-      border:1px solid #ccc;
-      border-radius:10px;
-      background-color: #FFFCEE;
-      height:15px;
-      line-height: 12px;
-      margin-bottom:20px;
-}#plots{clear:left;}#lG{float:left;position:relative;top:25px;left:10px;}#dB{padding:5px;margin-left:250px;width:550px;font-size:15px;background-color:#eee;}h1{color:#333;text-shadow: #FFFCEE 1px 1px 4px;}.d{height:100px;}
+      text-align:center;}
+#sT{visibility:hidden;text-align:center;background-color: #900;color:#fff;height:15px;}
+#dB{font-size:15px;background-color:#eee;padding:10px;border-radius: 20px 20px;}
+h1{color:#333;text-shadow: #FFFCEE 1px 1px 4px;}
+.d{height:100px;}
 </style>
 </head>
 <body>
     <h1>Frequency Domain RLC Circuit Analysis</h1>
     <div id="cn">
-        <div id="lG"></div>
         <p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>
         <div id="sT"></div>
-        <div id="plots"><a name="graphs"></a></div>
+        <div id="plots"></div>
 
         <div id="diag">
             <p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p>
             <div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>
+            
             F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4">
+            
             <div id="tbx"></div>
             <br><div id="diagram"></div>
         </div>
+        
         <div id="txt">
-            <p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a>|<a href="#" onClick="lEx(2)">(3)</a></p>
+            <p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p>
             <div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div>
             <textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea>
             <div id="srC"></div>
         </div>
+        
         <div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div>
+        
     </div>
 </body></html>
 
