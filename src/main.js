@@ -334,7 +334,7 @@ function ParseSimpleFormatCircuitFromString (source)
 
     for (; i < count; i++)
     {
-        highlightedSource += 'ZX"ln">'+i+'.J';
+        highlightedSource += 'ZX"ln">'+((i-10<0)?'0':'')+i+'.J';
         if (lines[i] == "" || lines[i].match(/^\s*$/))
         {
             highlightedSource += 'B';
@@ -587,26 +587,19 @@ onmessage = function(event)
 function lEx(ex)
 {
     var d = $('cir');
-    switch (ex)
-    {
-        case 0:
-            d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
-            break;
-        case 1:
-            d.value = "# More complex example.\nR 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 500 10e3 4e6\nP 4\nE";
-            break;
-        //case 2:
-        //    d.value = "# A DC example\nI 1 0 5.0 0.0\nR 0 1 10\nI 2 1 2.0 0.0\nR 1 2 20\nR 2 0 30\nF 10 1 10\nP 2\nE";
-        //    break;
-    }
+    if (!ex)
+        d.value = "R 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 100 10e3 4e6\nP 4\nE";
+    else
+        d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
+            
 }
-var statusTimer;
+//var statusTimer;
 function sS(message)
 {
     $('sT').innerHTML = message;
-    $('sT').style.visibility = 'visible';
-    if (statusTimer) clearInterval(statusTimer);
-    statusTimer = setInterval('$("sT").style.visibility = "hidden";', 3000);
+    //$('sT').style.visibility = 'visible';
+    //if (statusTimer) clearInterval(statusTimer);
+    //statusTimer = setInterval('$("sT").style.visibility = "hidden";', 3000);
 }
 
 // FIXME: reg exp replacement to shrink coord array or offset everything by 20
@@ -726,7 +719,7 @@ function drop(target, e)
     //if from tbx create a clone at target and add to components
     // if contains a child then stop operation
     // if an obj already on grid simply move it
-
+    e.preventDefault();
     
     if (!target.firstChild)
     {
@@ -738,10 +731,14 @@ function drop(target, e)
                 n = child.getAttribute('e'),
                 value = -1;
             if (id < 4 || (id > 6 && id < 11) )
-                value = prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", ""), n += '_' + value.replace(',','_').replace(' ','')
+            {
+                value = prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", "");
+                if (!value)
+                    return;
+                n += '_' + value.replace(',','_').replace(' ','');
+            }
             child.setAttribute('id', n);
             
-            // FIXME: ROTATION NEEDED
             drawElement(child,child.getAttribute('e'),child.getAttribute('rot'),value);
             
             target.appendChild(child);
@@ -756,7 +753,6 @@ function drop(target, e)
         $(id).firstChild.remove();
     }
     
-    e.preventDefault();
 } 
 
 function drawCircuitEditor()
@@ -984,8 +980,7 @@ function cTx()
 //http://forums.devarticles.com/javascript-development-22/javascript-to-round-to-2-decimal-places-36190.html
 function roundNumber(num, dec) 
 {
-    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
-    return result;
+    return Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
 }
 
 function drawGraphs(data)
@@ -1006,10 +1001,10 @@ function drawGraphs(data)
         {
             var w = 600,
                 h = 300,
-                oxs = 120.5,
+                oxs = 140.5,
                 oxe = w - 30.5,
                 oys = 30.5,
-                oye = h - 30.5,
+                oye = h - 40.5,
                 bottomoffset = 10,
                 topoffset = 10,
                 //plotareax = 438,
@@ -1017,7 +1012,7 @@ function drawGraphs(data)
                 graphoffsetx = oxe-oxs,  // this is the distance difference from the canvas w/h to scale the graph to
                 graphoffsety = oye-oys-bottomoffset-topoffset,
                 node = probes[i].pin - 1,
-                c = new Element('canvas', { 'width':w, 'height':h, 'class': 'graph', id: ('maggraph'+node) }),
+                c = new Element('canvas', { 'width':w, 'height':h, 'style': 'margin-top:20px', id: ('maggraph'+node) }),
                 context = c.getContext("2d");
 
             $('plots').appendChild(c);
@@ -1034,7 +1029,7 @@ function drawGraphs(data)
             context.lineJoin = 'bevel';
                         
             context.beginPath();
-            context.fillText("Node " + (node+1) + ((gc)?" Phase":" Magnitude"), (w-30)/2, 10.5);
+            context.fillText("Node " + (node+1) + ((gc)?" Phase":" Magnitude"), w/2, 10.5);
 
             context.moveTo(oxs,oys);
             context.lineTo(oxs,oye+10);
@@ -1084,14 +1079,16 @@ function drawGraphs(data)
             for (p = 0; p < 5; p++)
             {
                 var yv = oye - bottomoffset - ((p/4)*graphoffsety),
-                    xv = oxe - ((p/4)*graphoffsetx);
+                    xv = oxs+ ((p/4)*graphoffsetx);
                 context.moveTo(oxs - 8, yv);
                 context.lineTo(oxs, yv);
                 context.fillText(minval+((diff/5)*p),5.5,yv);
                 context.moveTo(xv, oye + 8);
                 context.lineTo(xv, oye);
-                context.fillText(siminfo.startFrequency+(((siminfo.endFrequency-siminfo.startFrequency)/5)*p),xv,(h-5.5));
+                context.fillText(siminfo.startFrequency+(((siminfo.endFrequency-siminfo.startFrequency)/5)*p),xv,oye+20);
             }
+            context.fillText("Voltage (V)",30,oys + 90);
+            context.fillText("Freq (Hz)",(w/2)+oys,h-3);
             context.stroke();
         }
     }
@@ -1123,11 +1120,11 @@ function cS()
     var a = $('sCs');
     if (errs.length)
     {
-        a.innerHTML = "✘";
+        a.innerHTML = "X";
         a.style.color = "red";
         return false;
     }
-    a.innerHTML = "✔";
+    a.innerHTML = "OK";
     a.style.color = "green";
     
     return true;
@@ -1168,6 +1165,17 @@ onload = function ()
 {
     //var logo = 'KsJKrJKlJKcJ';
     //$('lG').innerHTML = (logo.replace(/K/g,'<img src="imgs/')).replace(/J/g,'1.png">')
+    
+    //var t = '<h1>Frequency Domain RLC Circuit Analysis</h1><div id="cn"><p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><div id="sT"></div><div id="plots" style="text-align:center"></div><div id="diag"><p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p><div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4"><div id="tbx"></div><br><div id="diagram"></div></div><div id="txt"><p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p><div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div><div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div></div>';
+    var t = '<h1>Frequency Domain RLC Circuit Analysis</h1><div id="cn"><p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><div id="sT"></div><div id="plots" style="text-align:center"></div><div id="diag"><p>Draw here!</p><div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4"><div id="tbx"></div><br><div id="diagram"></div></div><div id="txt"><p>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p><div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div><div style="text-align:center"><a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010</div></div>';
+    /*var b = 'var t = \'<h1>Frequency Domain RLC Circuit Analysis</h1>{~cn"><p~dB">Calculate the sinusoidal steady state over a range of frequencies to find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>{~sT">}{~plots">}{~diag"><p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit description for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p>{~nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big"~ci">&#187;</span>}F Steps£100"~ft" size="4">| F Start (Hz)£.001"~fs" size="4">| F Stop (Hz)£100"~fe" size="4">{~tbx">}<br>{~diagram">}}{~txt"><p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p>{ class="nb" onClick="return aC()">Start Analysis <span class="big"~ai">&#187;</span>}<textarea~cir" rows="11" cols="32" style="font:15px Courier;"></textarea>{~srC">}}{ style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010}}\';',
+        search = '{}~£',
+        replace = ['<div','</div>', ' id="', ': <input type="text" value="'];
+
+        for (i=0; i < search.length; i++)
+            b = b.replace(RegExp(search.charAt(i),'g'), replace[i]);
+    eval(b);*/
+    document.body.innerHTML = t;
 
     lEx(0);
     cS();

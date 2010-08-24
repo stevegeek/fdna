@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html><head><title>JS FDNA</title>
 <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.1.0/prototype.js"></script> -->
-<script src="lib/prototype.js"></script>
-<script src="src/mn.js"></script>
-<style type="text/css">
+<script src="lib/prototype.js"></script><script src="src/main.js"></script><style type="text/css">
 body{width:850px;margin:0 auto;background:#eee;}
 #dB{font-size:15px;background:#fbf1c4;padding:10px;border-radius:20px;}
 #cn{margin:15px 0;padding:15px;border-radius:10px;background-color:#FFF;}
 .ln{border-right:1px solid #ccc;margin-right:20px;}
 .ky{color:navy}.nd{color:#8B4513}.cm{color:#060}.se{color:#fff;background:#900;}
-.nb{margin:0 0 10px 150px;padding-left:13px;background:#090;color: #fff;border-radius: 20px 20px;width:145px;line-height: 50px;cursor:pointer;}
+.nb{margin:40px 20px 20px 150px;padding-left:13px;background:#090;color:#fff;border-radius: 20px;width:145px;line-height: 50px;cursor:pointer;-moz-border-radius:20px;}
 #nbc{background:#34B9FF;margin-left:190px;width:200px;}
 .big{float:right;position:relative;top:-5px;left:-10px;font-size:50px}
 #tbx{height:150px;}
@@ -17,36 +15,6 @@ body{width:850px;margin:0 auto;background:#eee;}
 #txt{padding:0 30px;float:left;width:300px;}
 #srC{font-family:courier;background:beige;padding:10px;width:300px;height:400px;overflow:scroll;}
 .gl{border:1px solid #ccc;background:#eee;width:50px;height:50px;float:left;font-size:14px;}
-#sT{visibility:hidden;text-align:center;background-color:#900;color:#fff;height:18px;}
+#sT{visibility:hidden;text-align:center;background-color:#d33;color:#fff;height:18px;}
 .d{height:100px;}
-</style>
-</head>
-<body>
-    <h1>Frequency Domain RLC Circuit Analysis</h1>
-    <div id="cn">
-        <p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>
-        <div id="sT"></div>
-        <div id="plots"></div>
-
-        <div id="diag">
-            <p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p>
-            <div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>
-            
-            F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4">
-            
-            <div id="tbx"></div>
-            <br><div id="diagram"></div>
-        </div>
-        
-        <div id="txt">
-            <p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p>
-            <div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div>
-            <textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea>
-            <div id="srC"></div>
-        </div>
-        
-        <div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div>
-        
-    </div>
-</body></html>
-
+</style></head><body></body></html>
