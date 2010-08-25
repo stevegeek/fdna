@@ -382,17 +382,17 @@ function ParseSimpleFormatCircuitFromString (source)
         else if (lines[i].match(comment))
         {
             // ignore
-            highlightedSource += 'ZX"cm">&#35; '+RegExp.$1+'JB';
+            highlightedSource += 'ZX#060">&#35; '+RegExp.$1+'JB';
         }
         else
         {
-            highlightedSource += 'ZX"se">'+lines[i]+'J<br>';
+            highlightedSource += 'ZX#fff;background:#900;">'+lines[i]+'J<br>';
             er.push({line: i});
         }
     }
     
     var search = 'XZJKNYB',
-        replace = ['class=','<span ','</span>&nbsp;','"ky">', '"nd">', '"vl">', '<br>'];
+        replace = ['style="color:','<span ','</span>&nbsp;','navy">', '#8b4513">', '#000">', '<br>'];
 
     for (i=0; i < 7; i++)
         highlightedSource = highlightedSource.replace(RegExp(search.charAt(i),'g'), replace[i]);    
@@ -499,9 +499,10 @@ function Analyse (parseResult)
                 if (!matrix[equ][node])
                     matrix[equ][node] = ZMake(0.0, 0.0);
 
-                for (var i = 0; i < linearEquations[equ][node].input.length; i++)
+                var le = linearEquations[equ][node];
+                for (var i = 0; i < le.input.length; i++)
                 {
-                    var component = linearEquations[equ][node].input[i];
+                    var component = le.input[i];
                     switch (component.type)
                     {
                         //case 'V':
@@ -522,9 +523,9 @@ function Analyse (parseResult)
                     }
                     matrix[equ][node] = ZAdd(matrix[equ][node], val);
                 }
-                for (var o = 0; o < linearEquations[equ][node].output.length; o++)
+                for (var o = 0; o < le.output.length; o++)
                 {
-                    var component = linearEquations[equ][node].output[o];
+                    var component = le.output[o];
                     switch (component.type)
                     {
                         //case 'V':
@@ -577,14 +578,7 @@ function lEx(ex)
         d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
             
 }
-//var statusTimer;
-function sS(message)
-{
-    alert(message);
-    //$('sT').style.visibility = 'visible';
-    //if (statusTimer) clearInterval(statusTimer);
-    //statusTimer = setInterval('$("sT").style.visibility = "hidden";', 3000);
-}
+
 
 // FIXME: reg exp replacement to shrink coord array or offset everything by 20
 function drawElement(canvas,type,rot,value)
@@ -673,17 +667,17 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
 */
 // h k t x
 // FIXME: remove src and class
-var imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2,r:-2,b:-2,l:-1}),AglBC-2,r:-2,b:-2,l:0}),ArvBCZAlvBCZAcvBCZAsvBC-1,r:-2,b:-1,l:-2F,AptBC-1,r:-2,b:-2,l:-2F,AgtBC0,r:-2,b:-2,l:-2F,AvBCZAkbrBC-2,r:-1,b:-1,l:-2}),AktlBC-1,r:-2,b:-2,l:-1GAktrBC-1,r:-1,b:-2,l:-2HAkblBC-2,r:-2,b:-1,l:-1F,AtrBC-1,r:-1,b:-1,l:-2}),AtlBC-1,r:-2,b:-1,l:-1GAttBC-1,r:-1,b:-2,l:-1HAtbBC-2,r:-1,b:-1,l:-1F,AxBC-1,r:-1,b:-1,l:-1F];',
-    imgSearch = 'ABCDZFGH',
-    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1,r:-2,b:-1,l:-2, 'rot':1}),", ", 'rot':1})",", 'rot':3}),", ", 'rot':2}),"];
+imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2Jl:-1}),AglBC-2Jl:0}),ArvBCZAlvBCZAcvBCZAsvBC-1Kl:-2F,AptBC-1Jl:-2F,AgtBC0Jl:-2F,AvBCZAkbrBC-2Ll:-2}),AktlBC-1Jl:-1GAktrBC-1,r:-1,b:-2,l:-2HAkblBC-2Kl:-1F,AtrBC-1Ll:-2}),AtlBC-1Kl:-1GAttBC-1,r:-1,b:-2,l:-1HAtbBC-2Ll:-1F,AxBC-1Ll:-1F];',
+    imgSearch = 'ABCDZFGHJKL',
+    imgReplace = ["new Element('canvas', { e:'","', width:50,style:'width:50px;height:50px; ', height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1Kl:-2, 'rot':1}),", ", 'rot':1})",", 'rot':3}),", ", 'rot':2}),", ",r:-2,b:-2,",",r:-2,b:-1,",",r:-1,b:-1,"];
 
     for (i=0; i < imgSearch.length; i++)
         imgCode = imgCode.replace(RegExp(imgSearch.charAt(i),'g'), imgReplace[i]);
 eval(imgCode);
 
 // FIXME: '' are not needed for prop names
-var griddiv = new Element('div', { 
-        'class': 'gl',
+griddiv = new Element('div', {
+        'style':'width:50px;height:50px;float:left;font-size:11px;border:1px solid #aaa;background:#eee;',
         'draggable':'true',
         'ondragstart':"drag(this, event)",
         'ondragenter':"return false",
@@ -691,7 +685,7 @@ var griddiv = new Element('div', {
         'ondrop':"drop(this, event)"
     });
 
-var gridSize = 8;
+gridSize = 8;
 
 function drag(target, e) 
 {
@@ -717,18 +711,22 @@ function drop(target, e)
             //console.log('add')
             var id = pI(RegExp.$1),
                 child = cim[id].clone(),
-                n = child.getAttribute('e'),
+                n,
                 value = -1;
+            child.gA = child.getAttribute;
+            n = child.gA('e')
             if (id < 4 || (id > 6 && id < 11) )
             {
-                value = prompt("Value (R=[ohms], L=[henry], C=[farads], I=[mag,phase]=[amps,rad/s])", "");
+                value = prompt("Value (R=[ohms], L=[henry], C=[farads], I=[amps])", "1");
+                if (id == 10 || id == 3)
+                    value += ','+prompt("Phase (I=[rad/s])", "0");
                 if (!value)
                     return;
                 n += '_' + value.replace(',','_').replace(' ','');
             }
             child.setAttribute('id', n);
             
-            drawElement(child,child.getAttribute('e'),child.getAttribute('rot'),value);
+            drawElement(child,child.gA('e'),child.gA('rot'),value);
             
             target.appendChild(child);
         }
@@ -750,7 +748,7 @@ function drawCircuitEditor()
         j = 0,
         elements = [],
         c;
-        
+    $('tbx').style.height = '150px';
     // create toolbox    
     for (i = 0; i < cim.length; i++)
     {
@@ -778,14 +776,14 @@ function drawCircuitEditor()
     }
 }
 
-var offsets = ['t','r','b','l', 'b','l','t','r', 0, 1, 0, -1, -1, 0, 1, 0];
+offsets = ['t','r','b','l', 'b','l','t','r', 0, 1, 0, -1, -1, 0, 1, 0];
 
 function propagateWireNodes()
 {
     var i = 0,
         j = 0,
         propagate = true;//,cnt = 0;
-        
+    
     while (propagate)
     {
         //cnt++;
@@ -849,6 +847,7 @@ function cTx()
 {
     var i = 0,
         j = 0,
+        k = 0;
         found = 0,
         nodenum = 1;
           
@@ -865,11 +864,17 @@ function cTx()
                     c.setAttribute('l', 0);
                 found = 1;
             }
+            else
+            {
+                for (k = 0; k < 4; k++)
+                    if (c && c.getAttribute(offsets[k]) > -2)
+                        c.setAttribute(offsets[k], -1);
+            }
         }
     }
     if (!found)
     {
-        sS("Your circuit does not contain a ground (reference node).");
+        alert("Your circuit does not contain a ground (reference node).");
         return;
     }
     
@@ -886,7 +891,7 @@ function cTx()
 
             if(!c || !c.getAttribute('e').match(/^[rlcsp]/)) continue;
             
-            for (var k = 0; k < 4; k++)
+            for (k = 0; k < 4; k++)
             {
                 if (c && c.getAttribute(offsets[k]) > -2) 
                 {
@@ -920,6 +925,7 @@ function cTx()
                 value = "";
                 
             if (c) { 
+                c.gA = c.getAttribute;
                 c.id.match(/^[^_]+\_([^_]+)\_?(.)*/);
                 value = RegExp.$1,
                 value2= RegExp.$2;
@@ -931,9 +937,9 @@ function cTx()
                 var type = RegExp.$1,
                     pins;
                 if (RegExp.$2 == 'v')
-                    pins = c.getAttribute('t') + ' ' + c.getAttribute('b');
+                    pins = c.gA('t') + ' ' + c.gA('b');
                 else
-                    pins = c.getAttribute('l') + ' ' + c.getAttribute('r');
+                    pins = c.gA('l') + ' ' + c.gA('r');
             
                 src += type.toUpperCase() + ' ' + pins + ' ' + value + "\n";
             
@@ -941,18 +947,18 @@ function cTx()
             else if (c && c.id.match(/^s([vh])/))
             {
                 if (RegExp.$1 == 'v')
-                    pins = c.getAttribute('t') + ' ' + c.getAttribute('b');
+                    pins = c.gA('t') + ' ' + c.gA('b');
                 else
-                    pins = c.getAttribute('l') + ' ' + c.getAttribute('r');
+                    pins = c.gA('l') + ' ' + c.gA('r');
                 
                 src += 'I ' + pins + ' ' + value + ' ' + value2 + "\n";
             }
             else if (c && c.id.match(/^p([tl])/))
             {
                 if (RegExp.$1 == 't')
-                    pins = c.getAttribute('t');
+                    pins = c.gA('t');
                 else
-                    pins = c.getAttribute('l');
+                    pins = c.gA('l');
                 
                 src += 'P ' + pins + "\n";
             }
@@ -1006,16 +1012,16 @@ function drawGraphs(data)
 
             $('plots').appendChild(c);
             
-            context.beginPath();
-            context.rect(oxs,oys,oxe-oxs,oye-oys);
-            context.fillStyle = "#eee";
-            context.fill();
+            //context.beginPath();
+            //context.rect(oxs,oys,oxe-oxs,oye-oys);
+            //context.fillStyle = "#eee";
+            //context.fill();
             
-            context.strokeStyle = "#000";
-            context.fillStyle = "#000";            
-            context.lineWidth = 2;
-            context.lineCap = 'round';
-            context.lineJoin = 'bevel';
+            //context.strokeStyle = "#000";
+            //context.fillStyle = "#000";            
+            //context.lineWidth = 2;
+            //context.lineCap = 'round';
+            //context.lineJoin = 'bevel';
                         
             context.beginPath();
             context.fillText("Node " + (node+1) + ((gc)?" Phase":" Magnitude"), w/2, 10.5);
@@ -1053,7 +1059,7 @@ function drawGraphs(data)
                 
             }
             
-            context.lineWidth = 1;
+            //context.lineWidth = 1;
             //context.beginPath();
 
             context.moveTo(oxs,oye);
@@ -1129,7 +1135,7 @@ function aC()
         //var analysed = Analyse(ParseSimpleFormatCircuitFromString($('cir').value));
         
         //if (analysed.error !== undefined)
-        //    sS("Error: " + analysed.error);
+        //    alert("Error: " + analysed.error);
         //else
         //{
         //    drawGraphs(analysed);
@@ -1140,7 +1146,6 @@ function aC()
 
 window['aC'] = aC;
 window['cS'] = cS;
-window['sS'] = sS;
 window['lEx'] = lEx;
 window['cTx'] = cTx;
 window['drag'] = drag;
@@ -1153,7 +1158,7 @@ onload = function ()
     
     //var t = '<h1>Frequency Domain RLC Circuit Analysis</h1><div id="cn"><p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><div id="sT"></div><div id="plots" style="text-align:center"></div><div id="diag"><p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p><div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4"><div id="tbx"></div><br><div id="diagram"></div></div><div id="txt"><p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p><div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div><div style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010, MIT License</div></div>';
     
-    var t = '<h1>Frequency Domain RLC Circuit Analysis</h1><div id="cn"><p id="dB">Calculate the sinusoidal steady state over a range of frequencies and find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p><div id="plots" style="text-align:center"></div><div id="diag"><p>Draw here!</p><div id="nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big" id="ci">&#187;</span></div>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="100" id="fe" size="4"><div id="tbx"></div><br><div id="diagram"></div></div><div id="txt"><p>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p><div class="nb" onClick="return aC()">Start Analysis <span class="big" id="ai">&#187;</span></div><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div><div style="text-align:center"><a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010</div></div>';
+    var t = '<h1 style="font-family:"apolline-1";">Frequency Domain RLC Circuit Analysis</h1><p>Find the sinusoidal steady state Resistor, Inductor, Capacitor circuits over a range of frequencies. Draw and/or describe your circuit below. For usage see: <a href="http://www.stephenierodiaconou.com/">SI</a> and <a  href="http://github.com/stevegeek/fdna">GH</a></p><div id="plots" style="text-align:center"></div><div id="diag"><button onClick="return cTx()">Convert to Text Format &#187;</button><br>F Steps: <input type="text" value="100" id="ft" size="4">| F Start (Hz):<input type="text" value=".001" id="fs" size="4">| F Stop (Hz):<input type="text" value="0.1" id="fe" size="4"><div id="tbx"></div><br><div id="diagram"></div></div><div id="txt"><button onClick="return aC()">Start Analysis &#187;</button><p>Examples: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p><textarea id="cir" rows="11" cols="32" style="font:15px Courier;"></textarea><div id="srC"></div></div>';
     /*var b = 'var t = \'<h1>Frequency Domain RLC Circuit Analysis</h1>{~cn"><p~dB">Calculate the sinusoidal steady state over a range of frequencies to find the resonance frequency of RLC (Resistor, Inductor, Capacitor) circuits.<br><br>For a detailed discussion of usage and implementation see <a  href="http://github.com/stevegeek/fdna">GitHub</a></p>{~sT">}{~plots">}{~diag"><p class="d">Here you can optionally draw the RLC circuit and the app will generate the circuit description for you. Simply drag and drop components and wires onto the grid below. When dropping a component you will be prompted for its value, sources have the magnitude and phase separated by a comma. Frequency start and stop over a given number of steps can also be specified here.</p>{~nbc" class="nb" onClick="return cTx()">Convert to Text Format<span class="big"~ci">&#187;</span>}F Steps£100"~ft" size="4">| F Start (Hz)£.001"~fs" size="4">| F Stop (Hz)£100"~fe" size="4">{~tbx">}<br>{~diagram">}}{~txt"><p class="d">Below is the circuit description in a simple SPICE inspired format. Click here to read about it in detail.<br><br>Example Circuits: <a href="#" onClick="lEx(0)">(1)</a>|<a href="#" onClick="lEx(1)">(2)</a></p>{ class="nb" onClick="return aC()">Start Analysis <span class="big"~ai">&#187;</span>}<textarea~cir" rows="11" cols="32" style="font:15px Courier;"></textarea>{~srC">}}{ style="text-align:center">Copyright <a href="http://www.stephenierodiaconou.com/">Stephen Ierodiaconou</a> 2010}}\';',
         search = '{}~£',
         replace = ['<div','</div>', ' id="', ': <input type="text" value="'];
