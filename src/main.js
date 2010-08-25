@@ -1109,7 +1109,7 @@ function drawGraphs(data)
                 context.lineTo(xv, oye);
                 context.fillText(siminfo.startFrequency+(((siminfo.endFrequency-siminfo.startFrequency)/5)*p),xv,oye+20);
             }
-            context.fillText("Voltage (V)",30,oys + 90);
+            context.fillText(((gc)?"Angle (Rad)":"Voltage (V)"),30,oys + 90);
             context.fillText("Freq (Hz)",(w/2)+oys,h-3);
             context.stroke();
         }
