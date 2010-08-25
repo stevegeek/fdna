@@ -665,6 +665,8 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
         new Element('img', { e:'x', src:'imgs/x1.png', 'class':'rot', t:-1,r:-1,b:-1,l:-1})
         ];
 */
+
+
 // h k t x
 // FIXME: remove src and class
 imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2Jl:-1}),AglBC-2Jl:0}),ArvBCZAlvBCZAcvBCZAsvBC-1Kl:-2F,AptBC-1Jl:-2F,AgtBC0Jl:-2F,AvBCZAkbrBC-2Ll:-2}),AktlBC-1Jl:-1GAktrBC-1,r:-1,b:-2,l:-2HAkblBC-2Kl:-1F,AtrBC-1Ll:-2}),AtlBC-1Kl:-1GAttBC-1,r:-1,b:-2,l:-1HAtbBC-2Ll:-1F,AxBC-1Ll:-1F];',
@@ -675,30 +677,39 @@ imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2Jl:-1}),AglBC-2Jl:0}),
         imgCode = imgCode.replace(RegExp(imgSearch.charAt(i),'g'), imgReplace[i]);
 eval(imgCode);
 
-globid = -1;
-// FIXME: '' are not needed for prop names
-griddiv = new Element('div', {
-        'style':'width:50px;height:50px;float:left;font-size:11px;border:1px solid #aaa;background:#eee;',
-        'draggable':'true',
-        'ondragstart':"globid = this.id", //"event.dataTransfer.setData('text/plain', this.id)",//"drag(this, event);",
-        'ondragenter':"return false;",
-        'ondragover':"return false;", 
-        'ondrop':"drop(this, event);"
-    });
 
 gridSize = 8;
 
-//function drag(target, e) 
-//{
-//    e.dataTransfer.setData('text/plain', target.getAttribute('id'));
-//}
+function drag(target, e) 
+{
+    //if (typeof e.dataTransfer != 'undefined')
+    try {
+        e.dataTransfer.setData('text/plain', target.getAttribute('id'));
+    } catch(e)
+    {
+        globid = target.id;
+    }
+    //console.log('drag');
+    //globid = target.id;
+//    return true;
+    
+}
 
 fromToolbox = /^tb(\d+)/;
 
 function drop(target, e) 
 {
-    //var id = e.dataTransfer.getData('text/plain');
-    var id = globid;
+    //console.log('drop');
+    //var id = (typeof e.dataTransfer == 'undefined')?(globid):(e.dataTransfer.getData('text/plain'));
+    var id;
+    try{
+        id = e.dataTransfer.getData('text/plain');
+    }
+    catch(e)
+    {
+        id = globid;
+    }
+    //var id = globid;
     //console.log(target.id + " <- " + id)
 
     //if from tbx create a clone at target and add to components
@@ -743,6 +754,20 @@ function drop(target, e)
     }
     
 } 
+
+
+globid = -1;
+
+// FIXME: '' are not needed for prop names
+griddiv = new Element('div', {
+        'style':'width:50px;height:50px;float:left;font-size:11px;border:1px solid #aaa;background:#eee;',
+        'draggable':'true',
+        'ondragstart':"drag(this, event);", //"event.dataTransfer.setData('text/plain', this.id)",//"drag(this, event);",
+        'ondragenter':"return false;",
+        'ondragover':"return false;", 
+        'ondrop':"drop(this, event);"
+    });
+
 
 function drawCircuitEditor()
 {
@@ -876,7 +901,7 @@ function cTx()
     }
     if (!found)
     {
-        alert("Your circuit does not contain a ground (reference node).");
+        alert("Your circuit does not contain a reference node.");
         return;
     }
     
@@ -908,7 +933,7 @@ function cTx()
                     }
                     catch (e)
                     {
-                        alert('The component (if there is one) at grid cell ' +i +','+j + ' does not have a '+offsets[k+4]+' connection')
+                        alert('The component at grid cell ' +i +','+j + ' does not have a '+offsets[k+4]+' connection')
                         return
                     }
                 }
@@ -1150,7 +1175,7 @@ window['aC'] = aC;
 window['cS'] = cS;
 window['lEx'] = lEx;
 window['cTx'] = cTx;
-//window['drag'] = drag;
+window['drag'] = drag;
 window['drop'] = drop;
 
 onload = function () 
