@@ -2,21 +2,23 @@ Frequency Domain Nodal Analysis for RLC circuits
 ------------------------------------------------
 _Copyright Stephen Ierodiaconou, 2010_
 
-Frequency Domain Nodal Analysis in Javascript. Generate the sinusoidal steady state of RLC circuits in the browser.
-http://www.stephenierodiaconou.com/fdna
+Frequency Domain Nodal Analysis in Javascript. Generate the sinusoidal steady state of RLC circuits in the browser and find their resonance point.
+[http://www.stephenierodiaconou.com/10k](http://www.stephenierodiaconou.com/10k)
 
 Features include:
-* Circuit diagram editor
-* Circuit text description editor
-* Circuit text description syntax checking and highlighting
-* Frequency domain analysis of the RLC circuits
-* Graphing of results (Magnitude and Phase)
+
+*   Circuit diagram editor
+*   Circuit text description editor
+*   Circuit text description syntax checking and highlighting
+*   Frequency domain analysis of the RLC circuits
+*   Graphing of results (Magnitude and Phase)
 
 Components include:
-* Current sources
-* Resistor, Capacitors and Inductors
-* Probes
-* Reference (Ground) nodes
+
+*   Current sources
+*   Resistor, Capacitors and Inductors
+*   Probes
+*   Reference (Ground) nodes
 
 For a detailed discussion on RLC circuits see [Wikipedia/RLC](http://en.wikipedia.org/wiki/RLC_circuit).
 
@@ -46,21 +48,21 @@ When you are happy with your circuit simply click `Convert to Text Format` to ge
 
 Usage of Circuit Text Editor
 ----------------------------
-The text area allows editing of the current circuit description. As you edit the area below shows syntax errors in red, and otherwise highlight the source accordingly.  Note that anything after an end, `E`, command is ignored.
-
+The text area allows editing of the current circuit description. As you edit the circuit the area below shows the highlighted source and any syntax errors in red.  Note that anything after an (end) `E`, command is ignored.
 
 Description of Circuit Text Format
 ----------------------------------
 The circuit format is as follows:
 
 Components:
-* `I <node1> <node2> <mag> <phase>` : Sources: A current source provides a complex current flowing from `<node1>` to `<node2>` with a magnitude of `<mag>` and phase `<phase>`.
-* `R <node1> <node2> <value>` : Resistor with value `<value>` Ohms.
-* `C <node1> <node2> <value>` : Capacitors with value `<value>` Farad.
-* `L <node1> <node2> <value>` : Inductors with value `<value>` Henry.
-* `P <node>` : Probes: A probe allows you to visualise the state of a node in the circuit. Any probes in the circuit description will automatically be graphed after the analysis has complete. You can include any number of probes.
-* `F <steps> <start> <stop>` : Simulation Information: This command allows you to specify the frequency range and steps for the analysis. The analysis proceeds from `<start>` frequency in Hz to `<stop>` frequency in Hz over `<steps>` steps.
-* `E` : End Description: This command should appear at the end of the circuit description. Anything after it is ignored so can be used to further comments and notes. 
+
+*   `I <node1> <node2> <mag> <phase>` : Sources: A current source provides a complex current flowing from `<node1>` to `<node2>` with a magnitude of `<mag>` and phase `<phase>`.
+*   `R <node1> <node2> <value>` : Resistor with value `<value>` Ohms.
+*   `C <node1> <node2> <value>` : Capacitors with value `<value>` Farad.
+*   `L <node1> <node2> <value>` : Inductors with value `<value>` Henry.
+*   `P <node>` : Probes: A probe allows you to visualise the state of a node in the circuit. Any probes in the circuit description will automatically be graphed after the analysis has complete. You can include any number of probes.
+*   `F <steps> <start> <stop>` : Simulation Information: This command allows you to specify the frequency range and steps for the analysis. The analysis proceeds from `<start>` frequency in Hz to `<stop>` frequency in Hz over `<steps>` steps.
+*   `E` : End Description: This command should appear at the end of the circuit description. Anything after it is ignored so can be used to further comments and notes. 
 
 Source code
 -----------
