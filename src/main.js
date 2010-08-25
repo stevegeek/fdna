@@ -574,8 +574,8 @@ function lEx(ex)
     var d = $('cir');
     if (!ex)
         d.value = "R 0 1 50\nL 1 2 9.552e-6\nL 2 3 7.28e-6\nL 3 4 4.892e-6\nL 1 5 6.368e-6\nL 3 6 12.94e-6\nL 4 7 6.368e-6\nC 0 5 636.5e-12\nC 0 2 2122e-12\nC 0 6 465.8e-12\nC 0 7 636.5e-12\nR 0 4 50\nI 1 0 1.0 0.0\nF 100 10e3 4e6\nP 4\nE";
-    else
-        d.value = "# A simple RLC circuit\nL 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
+    else //# A simple RLC circuit\n
+        d.value = "L 1 2 5.00E-03\nR 2 3 500\nC 3 0 4.70E-09\nI 1 0 1.0 0.0\nF 50 30E+03 40E+03\nP 2\nE\n";
             
 }
 
@@ -669,34 +669,36 @@ var cim = [ new Element('img', { e:'rh', src:'imgs/r1.png', t:-2,r:-1,b:-2,l:-1 
 // FIXME: remove src and class
 imgCode = 'var cim = [ArhBCDAlhBCDAchBCDAshBCDAhBCDAplBC-2Jl:-1}),AglBC-2Jl:0}),ArvBCZAlvBCZAcvBCZAsvBC-1Kl:-2F,AptBC-1Jl:-2F,AgtBC0Jl:-2F,AvBCZAkbrBC-2Ll:-2}),AktlBC-1Jl:-1GAktrBC-1,r:-1,b:-2,l:-2HAkblBC-2Kl:-1F,AtrBC-1Ll:-2}),AtlBC-1Kl:-1GAttBC-1,r:-1,b:-2,l:-1HAtbBC-2Ll:-1F,AxBC-1Ll:-1F];',
     imgSearch = 'ABCDZFGHJKL',
-    imgReplace = ["new Element('canvas', { e:'","', width:50,style:'width:50px;height:50px; ', height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1Kl:-2, 'rot':1}),", ", 'rot':1})",", 'rot':3}),", ", 'rot':2}),", ",r:-2,b:-2,",",r:-2,b:-1,",",r:-1,b:-1,"];
+    imgReplace = ["new Element('canvas', { e:'","', width:50, height:50, "," t:","-2,r:-1,b:-2,l:-1 }),","-1Kl:-2, 'rot':1}),", ", 'rot':1})",", 'rot':3}),", ", 'rot':2}),", ",r:-2,b:-2,",",r:-2,b:-1,",",r:-1,b:-1,"];
 
     for (i=0; i < imgSearch.length; i++)
         imgCode = imgCode.replace(RegExp(imgSearch.charAt(i),'g'), imgReplace[i]);
 eval(imgCode);
 
+globid = -1;
 // FIXME: '' are not needed for prop names
 griddiv = new Element('div', {
         'style':'width:50px;height:50px;float:left;font-size:11px;border:1px solid #aaa;background:#eee;',
         'draggable':'true',
-        'ondragstart':"drag(this, event)",
-        'ondragenter':"return false",
-        'ondragover':"return false", 
-        'ondrop':"drop(this, event)"
+        'ondragstart':"globid = this.id", //"event.dataTransfer.setData('text/plain', this.id)",//"drag(this, event);",
+        'ondragenter':"return false;",
+        'ondragover':"return false;", 
+        'ondrop':"drop(this, event);"
     });
 
 gridSize = 8;
 
-function drag(target, e) 
-{
-    e.dataTransfer.setData('text/plain', target.id);
-}
+//function drag(target, e) 
+//{
+//    e.dataTransfer.setData('text/plain', target.getAttribute('id'));
+//}
 
 fromToolbox = /^tb(\d+)/;
 
 function drop(target, e) 
 {
-    var id = e.dataTransfer.getData('text/plain');
+    //var id = e.dataTransfer.getData('text/plain');
+    var id = globid;
     //console.log(target.id + " <- " + id)
 
     //if from tbx create a clone at target and add to components
@@ -1148,7 +1150,7 @@ window['aC'] = aC;
 window['cS'] = cS;
 window['lEx'] = lEx;
 window['cTx'] = cTx;
-window['drag'] = drag;
+//window['drag'] = drag;
 window['drop'] = drop;
 
 onload = function () 
