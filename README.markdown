@@ -3,7 +3,6 @@ Frequency Domain Nodal Analysis for RLC circuits
 _Copyright Stephen Ierodiaconou, 2010_
 
 Frequency Domain Nodal Analysis in Javascript. Generate the sinusoidal steady state of RLC circuits in the browser and find their resonance point.
-[http://www.stephenierodiaconou.com/fdna](http://www.stephenierodiaconou.com/fdna)
 
 Features include:
 
@@ -75,7 +74,7 @@ Uses canvas, your browser must support them!
 ----------------------------------------------------------------------------
 The MIT License
 
-Copyright (c) 2010 Stephen Ierodiaconou (http://www.stephenierodiaconou.com)
+Copyright (c) 2010 Stephen Ierodiaconou
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
